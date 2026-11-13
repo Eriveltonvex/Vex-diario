@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diário de Bordo · VEX</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#d8392f"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=Montserrat:wght@500&display=swap">
+<style>
+/* Layout: cabeçalho branco com a marca em cinza gelo, abas por tarefa (Abastecimentos, Resumo, Cadastro), tabelas de trabalho no centro. */
+:root{
+  --navy:#858a8f; --strong:#858a8f; --red:#d8392f; --paper:#fbfbfc; --ink:#26282d; --line:#e3e4e7;
+  --surface:#ffffff; --muted:#6b6e75; --ok:#1f7a4d; --warn:#b26a00; --soft:#f1f2f4;
+  --band:#ffffff; --logo:#858a8f;
+  --f-display:'Chakra Petch','Arial Narrow',sans-serif; --f-body:'Barlow',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.band{background:var(--band);color:var(--strong);padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band-in{max-width:1100px;margin:0 auto;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.logo{overflow:visible;width:230px;max-width:60vw;height:auto;display:block}
+.band h1{font:600 22px/1.15 var(--f-display);margin:0;letter-spacing:.02em;text-wrap:balance}
+.band p{margin:4px 0 0;color:#858a8f;font-size:13px}
+.stripe{height:5px;background:var(--red)}
+main{max-width:1100px;margin:0 auto;padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+nav button{font:600 14px var(--f-display);letter-spacing:.03em;padding:9px 16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;border-radius:3px}
+nav button[aria-selected="true"]{background:var(--surface);color:var(--strong);border-color:var(--navy);box-shadow:inset 0 -3px 0 var(--red)}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+h2{font:600 18px var(--f-display);margin:0 0 12px;letter-spacing:.02em}
+.panel{background:var(--surface);border:1px solid var(--line);padding:16px;margin-bottom:18px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;min-width:0}
+input,select{font:400 15px var(--f-body);padding:8px 9px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:3px;min-width:0;width:100%}
+td input,td select{padding:6px 7px;font-size:14px;min-width:90px}
+.btn{font:600 14px var(--f-display);padding:10px 16px;background:var(--red);color:#fff;border:0;border-radius:3px;cursor:pointer;letter-spacing:.03em}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;font-variant-numeric:tabular-nums}
+th{font:600 12px var(--f-display);text-transform:uppercase;letter-spacing:.07em;text-align:left;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--navy);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n,th.n{text-align:right}
+.tag{display:inline-block;font:600 11px var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border:1px solid currentColor;border-radius:2px;white-space:nowrap}
+.tag.ok{color:var(--ok)} .tag.warn{color:var(--warn)} .tag.red{color:var(--red)} .tag.mut{color:var(--muted)}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 8px}
+.hint{color:var(--muted);font-size:13px;margin:8px 0 0}
+.msg{color:var(--warn);font-size:13px;margin:8px 0 0;min-height:1em}
+.tally{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.tally div{background:var(--soft);padding:8px 14px;border-left:3px solid var(--red);font-size:14px}
+.tally b{font-family:var(--f-display);font-size:19px;margin-right:6px}
+.empty{color:var(--muted);padding:14px 4px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+.row label{min-width:220px}
+@media (max-width:520px){.band h1{font-size:19px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:640px){#o-tab{min-width:0!important}#o-tab thead{display:none}#o-tab tr{display:block;border:1px solid var(--line);border-left:3px solid var(--red);margin-bottom:10px;padding:6px 8px}#o-tab td{display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;padding:5px 0;text-align:right}#o-tab td::before{content:attr(data-l);font:600 11px var(--f-display);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left}#o-tab td input{min-width:0;width:140px}}
+.thumb{font:600 12px var(--f-display);background:var(--soft);border:1px solid var(--line);padding:2px 8px;cursor:pointer;color:var(--navy);border-radius:2px}
+.thumb:hover{border-color:var(--red)}
+#fv{position:fixed;inset:0;background:rgba(20,22,26,.88);display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:9999;padding:16px}
+#fv img{max-width:100%;max-height:80vh;background:#fff}
+#fv p{color:#fff;margin:0;font-size:14px;text-align:center}
+#fv button{background:#fff;border:0;padding:8px 18px;font-weight:700;cursor:pointer}
+body{margin:0}</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="vex" viewBox="5 30 1135 392" overflow="visible"><g style="fill:var(--logo)"><polygon points="51,39 116,40 108,218 38,288"/><polygon points="402.5,117.5 482.5,36.5 827.5,36.5 900,107.5 852.5,156 752.5,62.5 750,107.5 475,107.5 475,254 747.5,254 677.5,326 399,326"/><polygon points="505,151 777.5,151 777.5,214 505,214"/><polygon points="997.5,40 1105,40 832.5,326 722.5,326"/><polygon points="982.5,202.5 932.5,252.5 987.5,329 1112.5,329"/><text x="29" y="411" font-family="Montserrat,Barlow,Arial,sans-serif" font-weight="500" font-size="56" textLength="1089" lengthAdjust="spacing">SOLUÇÕES AUTOMOTIVAS</text></g><g fill="#d8392f"><polygon points="43,326 78,326 363,38 328,38"/><polygon points="134,326 166,326 451,38 419,38"/><polygon points="306.7,93 362.7,107 362.7,113 306.7,99"/><polygon points="217.6,183 273.6,197 273.6,203 217.6,189"/><polygon points="128.5,273 184.5,287 184.5,293 128.5,279"/></g></symbol>
+</svg>
+
+<header>
+  <div class="band"><div class="band-in">
+    <svg class="logo" viewBox="5 30 1135 392" overflow="visible" role="img" aria-label="VEX Soluções Automotivas"><use href="#vex"/></svg>
+    <div>
+      <h1>Diário de Bordo · Veículos de Apoio</h1>
+      <p>VEX Soluções Automotivas · Rev. 00 · Novembro de 2026</p>
+    </div>
+  </div></div>
+  <div class="stripe"></div>
+</header>
+
+<main>
+  <nav role="tablist" aria-label="Seções">
+    <button role="tab" id="t-reg" aria-selected="true" data-tab="reg">Saída e retorno</button>
+    <button role="tab" id="t-his" aria-selected="false" data-tab="his">Histórico</button>
+    <button role="tab" id="t-cad" aria-selected="false" data-tab="cad">Cadastro</button>
+  </nav>
+
+  <section id="reg">
+    <div class="panel">
+      <h2>Veículos em rota</h2>
+      <div class="tablewrap"><table id="o-tab" style="min-width:900px">
+        <thead><tr><th>Veículo</th><th>Condutor</th><th>Saiu</th><th>Origem → destino</th><th class="n">Km saída</th><th>Km chegada</th><th>Foto do odômetro</th><th>Hora</th><th></th></tr></thead>
+        <tbody id="o-rows"></tbody></table></div>
+      <p class="msg" id="o-msg" role="status"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Registrar saída</h2>
+      <form class="form" id="f-s">
+        <label for="s-v">Veículo<select id="s-v" required></select></label>
+        <label for="s-c">Condutor<select id="s-c" required></select></label>
+        <label for="s-d">Data<input type="date" id="s-d" required></label>
+        <label for="s-h">Hora<input type="time" id="s-h" required></label>
+        <label for="s-or">Origem<input id="s-or" required placeholder="Ex.: Oficina VEX"></label>
+        <label for="s-de">Destino<input id="s-de" required placeholder="Ex.: Cliente, peças, posto"></label>
+        <label for="s-mo">Motivo<input id="s-mo" placeholder="Ex.: Buscar peça"></label>
+        <label for="s-k">Km de saída<input type="number" id="s-k" min="0" step="1" required></label>
+        <label for="s-f" id="s-fl">Foto do odômetro (obrigatória)<input type="file" id="s-f" accept="image/*" capture="environment"></label>
+        <button class="btn" type="submit" id="s-btn">Registrar saída</button>
+      </form>
+      <p class="hint">Tire a foto do painel mostrando o odômetro, na saída e no retorno. Ela é obrigatória e serve para conferência. O km de saída vem preenchido com o último km de chegada do veículo. Se for diferente, o sistema aponta que houve uso sem registro. Quando o condutor voltar, finalize em “Veículos em rota”.</p>
+      <p class="msg" id="s-msg" role="status"></p>
+    </div>
+  </section>
+
+  <section id="his" hidden>
+    <div class="panel">
+      <h2>Histórico do diário de bordo</h2>
+      <p class="msg" id="h-aviso" role="status" style="display:none;margin:0 0 12px"></p>
+      <div class="form" style="margin-bottom:12px">
+        <label for="h-v">Veículo<select id="h-v"></select></label>
+        <label for="h-c">Condutor<select id="h-c"></select></label>
+        <label for="h-m">Mês<input type="month" id="h-m"></label>
+        <button class="btn sec" type="button" id="h-lim">Limpar filtros</button>
+        <button class="btn" type="button" id="h-csv" style="background:var(--navy)">Baixar planilha (CSV)</button>
+      </div>
+      <div class="tally" id="h-tally"></div>
+      <div class="tablewrap"><table style="min-width:1100px">
+        <thead><tr><th>Data</th><th>Veículo</th><th>Condutor</th><th>Origem → destino</th><th>Motivo</th><th>Saída</th><th>Chegada</th><th class="n">Km rodados</th><th>Situação</th><th></th></tr></thead>
+        <tbody id="h-rows"></tbody></table></div>
+      <p class="msg" id="h-msg" role="status"></p>
+    </div>
+    <div class="panel">
+      <h2>Km por condutor e por veículo</h2>
+      <div class="tablewrap"><table style="min-width:520px">
+        <thead><tr><th>Condutor</th><th class="n">Saídas</th><th class="n">Km</th></tr></thead><tbody id="k-c"></tbody></table></div>
+      <div class="tablewrap" style="margin-top:14px"><table style="min-width:520px">
+        <thead><tr><th>Veículo</th><th class="n">Saídas</th><th class="n">Km</th></tr></thead><tbody id="k-v"></tbody></table></div>
+      <p class="hint">Considera os mesmos filtros do histórico, só viagens já concluídas.</p>
+    </div>
+  </section>
+
+  <section id="cad" hidden>
+    <div class="panel">
+      <h2>Veículos de apoio</h2>
+      <form class="form" id="f-v">
+        <label for="v-pl">Placa<input id="v-pl" required maxlength="8" placeholder="ABC1D23"></label>
+        <label for="v-de">Marca / modelo<input id="v-de" placeholder="Ex.: Fiat Strada"></label>
+        <button class="btn" type="submit">Cadastrar</button>
+      </form>
+      <div class="tablewrap" style="margin-top:14px"><table style="min-width:480px">
+        <thead><tr><th>Placa</th><th>Marca / modelo</th><th></th></tr></thead><tbody id="v-rows"></tbody></table></div>
+      <p class="msg" id="v-msg" role="status"></p>
+    </div>
+    <div class="panel">
+      <h2>Condutores</h2>
+      <form class="form" id="f-c">
+        <label for="c-no">Nome<input id="c-no" required></label>
+        <label for="c-ma">Matrícula<input id="c-ma"></label>
+        <label for="c-cn">CNH (nº)<input id="c-cn"></label>
+        <label for="c-ca">Categoria<input id="c-ca" maxlength="3"></label>
+        <label for="c-va">Validade da CNH<input type="date" id="c-va"></label>
+        <button class="btn" type="submit">Cadastrar</button>
+      </form>
+      <div class="tablewrap" style="margin-top:14px"><table style="min-width:720px">
+        <thead><tr><th>Nome</th><th>Matrícula</th><th>CNH</th><th>Cat.</th><th>Validade</th><th>Situação</th><th></th></tr></thead><tbody id="c-rows"></tbody></table></div>
+      <p class="hint">Condutor com CNH vencida aparece avisado na saída, mas não é bloqueado.</p>
+      <p class="msg" id="c-msg" role="status"></p>
+    </div>
+    <div class="panel">
+      <h2>Fechamento do mês (fotos)</h2>
+      <div class="form" style="margin-bottom:12px">
+        <label for="x-m">Mês a fechar<input type="month" id="x-m"></label>
+        <button class="btn sec" type="button" id="x-info">Conferir mês</button>
+        <button class="btn" type="button" id="x-zip">1. Baixar backup do mês (fotos + planilha)</button>
+        <button class="btn" type="button" id="x-del" style="background:var(--navy)">2. Apagar as fotos do mês</button>
+      </div>
+      <p class="msg" id="x-msg" role="status"></p>
+      <p class="hint">Rotina mensal: ao fim do mês, baixe o backup (um arquivo .zip com todas as fotos e a planilha das viagens), guarde no computador ou na nuvem da empresa e só então apague as fotos do mês. As viagens, com origem, destino e km, continuam no histórico para sempre. Só é possível fechar meses já encerrados e sem veículo em rota.</p>
+    </div>
+  </section>
+</main>
+<div id="fv" role="dialog" aria-label="Foto do odômetro"><img id="fv-img" alt="Foto do odômetro"><p id="fv-cap"></p><button type="button" id="fv-x">Fechar</button></div>
+
+<script>window.VEX_SOLO=true;</script>
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="vex.js"></script>
+<script>
+(async function(){
+  var state={veic:[],cond:[],trips:[]};
+  state=await VEX.boot('diario',{colls:{veic:'asc',cond:'asc',trips:'asc'},seed:state});
+  function save(){VEX.save();}
+  var busy=false;
+  var perfil=(VEX.ME&&VEX.ME.perfil)||{},isCond=perfil.papel==='condutor',isAdm=perfil.papel==='admin';
+  function meuCond(){if(!isCond)return null;var n=(perfil.nome||'').trim().toLowerCase();for(var i=0;i<state.cond.length;i++)if(state.cond[i].nome.trim().toLowerCase()===n)return state.cond[i];return null}
+  function meu(t){var m=meuCond();return !m||t.cond===m.nome}
+  function $(i){return document.getElementById(i)}
+  function esc(t){var d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}
+  function fmt(d){if(!d)return'—';var a=d.split('-');return a[2]+'/'+a[1]+'/'+a[0]}
+  function nowParts(){var iso=new Date(Date.now()-3*3600*1000).toISOString();return{d:iso.slice(0,10),h:iso.slice(11,16)}}
+  function nf(n){return (+n).toLocaleString('pt-BR',{maximumFractionDigits:0})}
+  function by(a,k,v){for(var i=0;i<a.length;i++)if(a[i][k]===v)return a[i];return null}
+  function vlabel(pl){var v=by(state.veic,'placa',pl);return pl+(v&&v.desc?' · '+v.desc:'')}
+  function aberta(t){return t.kmR==null||t.kmR===''}
+  function ordem(a,b){var x=a.d+' '+a.hs,y=b.d+' '+b.hs;return x<y?-1:x>y?1:0}
+
+  /* ---- fotos ---- */
+  function compress(file){
+    return (window.createImageBitmap?createImageBitmap(file):Promise.reject()).catch(function(){return new Promise(function(ok,fail){var im=new Image();im.onload=function(){ok(im)};im.onerror=function(){fail(new Error('arquivo de imagem inválido'))};im.src=URL.createObjectURL(file)})}).then(function(bmp){
+      var w=bmp.width,h=bmp.height,sc=Math.min(1,1280/Math.max(w,h)),c=document.createElement('canvas');c.width=Math.round(w*sc);c.height=Math.round(h*sc);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+      return new Promise(function(ok,fail){c.toBlob(function(b){b?ok(b):fail(new Error('foto inválida'))},'image/jpeg',0.68)})});
+  }
+  function fotoPath(kind){var u=VEX.ME.user?VEX.ME.user.id:'demo';return u+'/'+nowParts().d.slice(0,7)+'/'+VEX.uid()+'-'+kind+'.jpg'}
+  function guardaFoto(file,kind){return compress(file).then(function(bl){var path=fotoPath(kind);return VEX.foto.put(path,bl).then(function(){return path})})}
+  function fotoCel(t,k){var p=k==='S'?t.fotoS:t.fotoR;
+    if(p)return ' <button type="button" class="thumb" data-foto="'+esc(p)+'" data-cap="'+esc(t.placa+' · '+t.cond+' · '+fmt(t.d)+' · '+(k==='S'?'saída':'chegada'))+'" aria-label="Ver foto do odômetro">📷 Foto</button>';
+    return t.fotoEm?' <span class="tag mut">foto apagada</span>':'';}
+  function verFoto(path,cap){var fv=$('fv');$('fv-img').removeAttribute('src');$('fv-cap').textContent='Carregando foto…';fv.style.display='flex';
+    VEX.foto.url(path).then(function(u){$('fv-img').src=u;$('fv-cap').textContent=cap},function(){$('fv-cap').textContent='Foto indisponível sem conexão. Tente de novo com internet.'})}
+  $('fv-x').addEventListener('click',function(){$('fv').style.display='none'});
+  $('fv').addEventListener('click',function(e){if(e.target===$('fv'))$('fv').style.display='none'});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')$('fv').style.display='none'});
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-foto]');if(b)verFoto(b.getAttribute('data-foto'),b.getAttribute('data-cap'))});
+  $('s-f').addEventListener('change',function(){$('s-fl').firstChild.textContent=this.files[0]?'✔ Foto do odômetro pronta':'Foto do odômetro (obrigatória)'});
+  if(isAdm)$('s-fl').firstChild.textContent='Foto do odômetro (opcional para administrador)';
+
+  /* alertas: km de saída diferente do último km de chegada do mesmo veículo */
+  function alertas(){var out={},g={};
+    state.trips.forEach(function(t){(g[t.placa]=g[t.placa]||[]).push(t)});
+    Object.keys(g).forEach(function(pl){var last=null;
+      g[pl].slice().sort(ordem).forEach(function(t){
+        if(last!=null&&t.kmS!==last){out[t.id]={k:t.kmS<last?'red':'warn',t:t.kmS<last?'Km menor que o último retorno':'+'+nf(t.kmS-last)+' km sem registro'}}
+        if(!aberta(t))last=t.kmR;});});
+    return out}
+  function ultimoKm(pl){var l=state.trips.filter(function(t){return t.placa===pl&&!aberta(t)}).sort(ordem);return l.length?l[l.length-1].kmR:null}
+  function opts(arr,k,ph,lab){return '<option value="">'+ph+'</option>'+arr.map(function(x){return '<option value="'+esc(x[k])+'">'+esc(lab?lab(x[k]):x[k])+'</option>'}).join('')}
+
+  function renderSel(){
+    var v=$('s-v').value,c=$('s-c').value,emRota={};state.trips.forEach(function(t){if(aberta(t))emRota[t.placa]=1});
+    $('s-v').innerHTML='<option value="">Selecione</option>'+state.veic.map(function(x){return '<option value="'+esc(x.placa)+'"'+(emRota[x.placa]?' disabled':'')+'>'+esc(vlabel(x.placa))+(emRota[x.placa]?' (em rota)':'')+'</option>'}).join('');
+    $('s-c').innerHTML=opts(state.cond,'nome','Selecione');
+    $('s-v').value=v;$('s-c').value=c;
+    var mc=meuCond();if(mc){$('s-c').value=mc.nome;$('s-c').disabled=true}
+    var hv=$('h-v').value,hc=$('h-c').value;
+    $('h-v').innerHTML=opts(state.veic,'placa','Todos',vlabel);$('h-c').innerHTML=opts(state.cond,'nome','Todos');$('h-v').value=hv;$('h-c').value=hc;
+  }
+  function renderOpen(){
+    var l=state.trips.filter(function(t){return aberta(t)&&meu(t)}).sort(ordem);
+    $('o-rows').innerHTML=l.length?l.map(function(t){var i=state.trips.indexOf(t);
+      return '<tr><td data-l="Veículo"><b>'+esc(vlabel(t.placa))+'</b></td><td data-l="Condutor">'+esc(t.cond)+'</td><td data-l="Saiu">'+fmt(t.d)+' '+esc(t.hs)+'</td><td data-l="Trajeto">'+esc(t.origem)+' → '+esc(t.destino)+'</td><td class="n" data-l="Km saída">'+nf(t.kmS)+'</td>'+
+      '<td data-l="Km chegada"><input type="number" min="'+t.kmS+'" step="1" id="r-k-'+i+'" style="min-width:110px" placeholder="Km"></td><td data-l="Foto"><input type="file" accept="image/*" capture="environment" id="r-f-'+i+'" style="max-width:190px"></td><td data-l="Hora"><input type="time" id="r-h-'+i+'" style="min-width:104px"></td>'+
+      '<td><button class="btn sm" type="button" data-fim="'+i+'">Finalizar</button></td></tr>'}).join('')
+      :'<tr><td colspan="9" class="empty">Nenhum veículo em rota.</td></tr>';
+    $('o-rows').querySelectorAll('input[type=time]').forEach(function(x){x.value=nowParts().h});
+  }
+  $('o-rows').addEventListener('click',async function(e){var i=e.target.getAttribute('data-fim');if(i==null||busy)return;
+    var t=state.trips[+i],k=parseInt($('r-k-'+i).value,10),h=$('r-h-'+i).value,m=$('o-msg');m.style.color='';
+    if(isNaN(k)){m.textContent='Informe o km de chegada.';return}
+    if(k<t.kmS){m.textContent='O km de chegada ('+nf(k)+') não pode ser menor que o de saída ('+nf(t.kmS)+').';return}
+    if(!h){m.textContent='Informe a hora de chegada.';return}
+    var ff=$('r-f-'+i).files[0];
+    if(!ff&&!isAdm){m.textContent='Tire a foto do odômetro de chegada. Ela é obrigatória.';return}
+    var fp='';
+    if(ff){busy=true;e.target.disabled=true;m.textContent='Guardando a foto…';
+      try{fp=await guardaFoto(ff,'r')}catch(er){busy=false;e.target.disabled=false;m.textContent='Não foi possível guardar a foto: '+(er&&er.message||er)+'. Tente de novo.';return}
+      busy=false;}
+    t.fotoR=fp;t.kmR=k;t.hr=h;t.dr=nowParts().d;save();m.style.color='var(--ok)';m.textContent='Retorno registrado: '+nf(k-t.kmS)+' km rodados.';renderAll();});
+  $('s-v').addEventListener('change',function(){var k=ultimoKm(this.value);$('s-k').value=k!=null?k:''});
+  $('f-s').addEventListener('submit',async function(e){e.preventDefault();if(busy)return;var m=$('s-msg');m.style.color='';
+    var pl=$('s-v').value,c=$('s-c').value,k=parseInt($('s-k').value,10);
+    if(!pl||!c||isNaN(k))return;
+    if(state.trips.some(function(t){return t.placa===pl&&aberta(t)})){m.textContent='Esse veículo já está em rota. Finalize o retorno antes.';return}
+    var cd=by(state.cond,'nome',c),aviso='';
+    if(cd&&cd.val&&cd.val<nowParts().d)aviso=' Atenção: a CNH de '+c+' está vencida.';
+    var sf=$('s-f').files[0];
+    if(!sf&&!isAdm){m.textContent='Tire a foto do odômetro de saída. Ela é obrigatória.';return}
+    var fpS='';
+    if(sf){busy=true;$('s-btn').disabled=true;m.textContent='Guardando a foto…';
+      try{fpS=await guardaFoto(sf,'s')}catch(er){busy=false;$('s-btn').disabled=false;m.textContent='Não foi possível guardar a foto: '+(er&&er.message||er)+'. Tente de novo.';return}
+      busy=false;$('s-btn').disabled=false;}
+    $('s-f').value='';$('s-fl').firstChild.textContent=isAdm?'Foto do odômetro (opcional para administrador)':'Foto do odômetro (obrigatória)';
+    state.trips.push({fotoS:fpS,fotoR:'',id:VEX.uid(),placa:pl,cond:c,d:$('s-d').value,hs:$('s-h').value,origem:$('s-or').value.trim(),destino:$('s-de').value.trim(),motivo:$('s-mo').value.trim(),kmS:k,kmR:null,hr:'',dr:''});
+    ['s-or','s-de','s-mo','s-k'].forEach(function(x){$(x).value=''});$('s-v').value='';
+    save();renderAll();m.style.color=aviso?'':'var(--ok)';m.textContent='Saída registrada.'+aviso;});
+
+  /* histórico */
+  function filtered(){var v=$('h-v').value,c=$('h-c').value,m=$('h-m').value;
+    return state.trips.filter(function(t){return meu(t)&&(!v||t.placa===v)&&(!c||t.cond===c)&&(!m||t.d.slice(0,7)===m)}).sort(function(a,b){return -ordem(a,b)})}
+  function renderHis(){
+    var l=filtered(),al=alertas(),km=0,n=0,ab=0,na=0;
+    l.forEach(function(t){if(aberta(t))ab++;else{km+=t.kmR-t.kmS;n++}if(al[t.id])na++});
+    $('h-tally').innerHTML='<div><b>'+l.length+'</b>saídas</div><div><b>'+nf(km)+' km</b>percorridos</div><div><b>'+ab+'</b>em rota</div>'+(na?'<div style="border-color:var(--warn)"><b>'+na+'</b>com alerta</div>':'');
+    $('h-rows').innerHTML=l.length?l.map(function(t){var i=state.trips.indexOf(t),a=al[t.id],o=aberta(t);
+      return '<tr><td>'+fmt(t.d)+'</td><td>'+esc(vlabel(t.placa))+'</td><td>'+esc(t.cond)+'</td><td>'+esc(t.origem)+' → '+esc(t.destino)+'</td><td>'+esc(t.motivo||'—')+'</td><td>'+esc(t.hs)+' · '+nf(t.kmS)+' km'+fotoCel(t,'S')+'</td><td>'+(o?'—':esc(t.hr)+' · '+nf(t.kmR)+' km'+fotoCel(t,'R'))+'</td><td class="n"><b>'+(o?'—':nf(t.kmR-t.kmS))+'</b></td>'+
+      '<td>'+(o?'<span class="tag mut">Em rota</span> ':'')+(a?'<span class="tag '+a.k+'">'+esc(a.t)+'</span>':(o?'':'<span class="tag ok">Ok</span>'))+'</td><td><button class="x" data-rm="'+i+'" aria-label="Apagar">×</button></td></tr>'}).join('')
+      :'<tr><td colspan="10" class="empty">Nenhuma saída registrada.</td></tr>';
+    function soma(campo,el){var g={};l.forEach(function(t){if(aberta(t))return;var x=g[t[campo]]=g[t[campo]]||{n:0,k:0};x.n++;x.k+=t.kmR-t.kmS});
+      $(el).innerHTML=Object.keys(g).sort(function(a,b){return g[b].k-g[a].k}).map(function(k){return '<tr><td>'+esc(campo==='placa'?vlabel(k):k)+'</td><td class="n">'+g[k].n+'</td><td class="n">'+nf(g[k].k)+'</td></tr>'}).join('')||'<tr><td colspan="3" class="empty">Sem viagens concluídas.</td></tr>'}
+    soma('cond','k-c');soma('placa','k-v');
+  }
+  ['h-v','h-c','h-m'].forEach(function(i){$(i).addEventListener('change',renderHis)});
+  $('h-lim').addEventListener('click',function(){$('h-v').value='';$('h-c').value='';$('h-m').value='';renderHis()});
+  $('h-rows').addEventListener('click',function(e){var i=e.target.getAttribute('data-rm');if(i==null)return;
+    if(!confirm('Apagar este registro?'))return;state.trips.splice(+i,1);save();renderAll()});
+  function q(t){t=t==null?'':String(t);return /[;"\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t}
+  $('h-csv').addEventListener('click',function(){var l=filtered().slice().reverse(),m=$('h-msg');m.style.color='';
+    if(!l.length){m.textContent='Não há registros para exportar.';return}
+    var al=alertas(),rows=[['Data','Placa','Veículo','Condutor','Origem','Destino','Motivo','Hora saída','Km saída','Data chegada','Hora chegada','Km chegada','Km rodados','Alerta','Foto saída','Foto chegada']];
+    l.forEach(function(t){var v=by(state.veic,'placa',t.placa)||{},o=aberta(t);rows.push([fmt(t.d),t.placa,v.desc||'',t.cond,t.origem,t.destino,t.motivo||'',t.hs,t.kmS,o?'':fmt(t.dr),o?'':t.hr,o?'':t.kmR,o?'':t.kmR-t.kmS,al[t.id]?al[t.id].t:'',t.fotoS?'sim':(t.fotoEm?'apagada':'não'),t.fotoR?'sim':(t.fotoEm?'apagada':(o?'':'não'))])});
+    VEX.download('Diario-de-Bordo-VEX-'+nowParts().d+'.csv','﻿'+rows.map(function(r){return r.map(q).join(';')}).join('\r\n'),'text/csv');m.style.color='var(--ok)';m.textContent='Planilha salva.'});
+
+  /* cadastro */
+  function usado(k,v){return state.trips.some(function(t){return t[k]===v})}
+  function renderCad(){
+    $('v-rows').innerHTML=state.veic.map(function(v,i){return '<tr><td><b>'+esc(v.placa)+'</b></td><td>'+esc(v.desc||'—')+'</td><td><button class="x" data-rm="veic" data-i="'+i+'" aria-label="Apagar">×</button></td></tr>'}).join('')||'<tr><td colspan="3" class="empty">Cadastre o primeiro veículo de apoio.</td></tr>';
+    $('c-rows').innerHTML=state.cond.map(function(c,i){var venc=c.val&&c.val<nowParts().d;
+      return '<tr><td><b>'+esc(c.nome)+'</b></td><td>'+esc(c.mat||'—')+'</td><td>'+esc(c.cnh||'—')+'</td><td>'+esc(c.cat||'—')+'</td><td>'+fmt(c.val)+'</td><td>'+(c.val?(venc?'<span class="tag red">CNH vencida</span>':'<span class="tag ok">Em dia</span>'):'<span class="tag mut">Sem validade</span>')+'</td><td><button class="x" data-rm="cond" data-i="'+i+'" aria-label="Apagar">×</button></td></tr>'}).join('')||'<tr><td colspan="7" class="empty">Cadastre os condutores.</td></tr>';
+  }
+  $('cad').addEventListener('click',function(e){var t=e.target.getAttribute('data-rm');if(!t)return;var i=+e.target.getAttribute('data-i'),o=state[t][i],msg=t==='veic'?'v-msg':'c-msg';
+    if(usado(t==='veic'?'placa':'cond',t==='veic'?o.placa:o.nome)){$(msg).textContent='Há saídas registradas para '+(t==='veic'?o.placa:o.nome)+'. Apague antes os registros.';return}
+    state[t].splice(i,1);$(msg).textContent='';save();renderAll()});
+  $('f-v').addEventListener('submit',function(e){e.preventDefault();var pl=$('v-pl').value.trim().toUpperCase().replace(/\s/g,'');if(!pl)return;
+    if(by(state.veic,'placa',pl)){$('v-msg').textContent='Placa já cadastrada.';return}
+    state.veic.push({placa:pl,desc:$('v-de').value.trim()});$('f-v').reset();$('v-msg').textContent='';save();renderAll()});
+  $('f-c').addEventListener('submit',function(e){e.preventDefault();var n=$('c-no').value.trim();if(!n)return;
+    if(by(state.cond,'nome',n)){$('c-msg').textContent='Condutor já cadastrado.';return}
+    state.cond.push({nome:n,mat:$('c-ma').value.trim(),cnh:$('c-cn').value.trim(),cat:$('c-ca').value.trim().toUpperCase(),val:$('c-va').value});$('f-c').reset();$('c-msg').textContent='';save();renderAll()});
+
+    /* ---- fechamento do mês (somente administrador) ---- */
+  var bkp={};
+  function fotosMes(ym){var l=[];state.trips.forEach(function(t){if(t.d.slice(0,7)!==ym)return;if(t.fotoS)l.push({t:t,k:'saida',p:t.fotoS});if(t.fotoR)l.push({t:t,k:'chegada',p:t.fotoR})});return l}
+  function csvMes(ym){var al=alertas(),rows=[['Data','Placa','Veículo','Condutor','Origem','Destino','Motivo','Hora saída','Km saída','Data chegada','Hora chegada','Km chegada','Km rodados','Alerta']];
+    state.trips.filter(function(t){return t.d.slice(0,7)===ym}).sort(ordem).forEach(function(t){var v=by(state.veic,'placa',t.placa)||{},o=aberta(t);rows.push([fmt(t.d),t.placa,v.desc||'',t.cond,t.origem,t.destino,t.motivo||'',t.hs,t.kmS,o?'':fmt(t.dr),o?'':t.hr,o?'':t.kmR,o?'':t.kmR-t.kmS,al[t.id]?al[t.id].t:''])});
+    return '﻿'+rows.map(function(r){return r.map(q).join(';')}).join('\r\n')}
+  function xmsg(t,c){var m=$('x-msg');m.style.color=c||'';m.textContent=t}
+  function mesFechavel(ym){if(!ym){xmsg('Escolha o mês.');return false}if(ym>=nowParts().d.slice(0,7)){xmsg('Só é possível fechar meses já encerrados.');return false}
+    if(state.trips.some(function(t){return t.d.slice(0,7)===ym&&aberta(t)})){xmsg('Há veículo ainda em rota neste mês. Finalize o retorno antes.');return false}return true}
+  function mnome(ym){var a=ym.split('-');return a[1]+'/'+a[0]}
+  $('x-info').addEventListener('click',function(){var ym=$('x-m').value;if(!ym){xmsg('Escolha o mês.');return}
+    var n=state.trips.filter(function(t){return t.d.slice(0,7)===ym}).length,f=fotosMes(ym).length;
+    xmsg(mnome(ym)+': '+n+' viagens e '+f+' fotos guardadas.'+(bkp[ym]?' Backup já baixado nesta sessão.':''))});
+  $('x-zip').addEventListener('click',async function(){var ym=$('x-m').value;if(!mesFechavel(ym))return;
+    if(!window.JSZip){xmsg('Componente de compactação indisponível. Recarregue a página.');return}
+    var l=fotosMes(ym),z=new JSZip(),falhas=0,btn=this;btn.disabled=true;
+    try{
+      z.file('viagens-'+ym+'.csv',csvMes(ym));
+      for(var i=0;i<l.length;i++){xmsg('Baixando fotos… '+(i+1)+' de '+l.length);
+        try{var bl=await VEX.foto.get(l[i].p);var t=l[i].t;z.file('fotos/'+t.d+'_'+t.hs.replace(':','h')+'_'+t.placa+'_'+t.cond.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'-')+'_'+l[i].k+'.jpg',bl)}catch(er){falhas++}}
+      xmsg('Compactando…');var out=await z.generateAsync({type:'blob'});
+      VEX.download('Fechamento-Diario-de-Bordo-'+ym+'.zip',out,'application/zip');
+      if(falhas){xmsg('Backup baixado, mas '+falhas+' foto(s) não puderam ser baixadas. Não apague as fotos deste mês. Tente de novo.','var(--red)')}
+      else{bkp[ym]=true;xmsg('Backup baixado: '+l.length+' fotos e a planilha. Guarde o arquivo em local seguro e depois, se quiser, apague as fotos do mês.','var(--ok)')}
+    }catch(er){xmsg('Não foi possível gerar o backup: '+(er&&er.message||er),'var(--red)')}
+    btn.disabled=false});
+  $('x-del').addEventListener('click',async function(){var ym=$('x-m').value;if(!mesFechavel(ym))return;
+    if(!bkp[ym]){xmsg('Baixe primeiro o backup do mês (botão 1) para poder apagar.');return}
+    var l=fotosMes(ym);if(!l.length){xmsg('Não há fotos guardadas em '+mnome(ym)+'.');return}
+    if(!confirm('Apagar definitivamente as '+l.length+' fotos de '+mnome(ym)+'? As viagens continuam no histórico. Confirme que o arquivo de backup foi guardado.'))return;
+    this.disabled=true;
+    try{await VEX.foto.remove(l.map(function(x){return x.p}));var hoje=nowParts().d;
+      state.trips.forEach(function(t){if(t.d.slice(0,7)===ym&&(t.fotoS||t.fotoR)){t.fotoS='';t.fotoR='';t.fotoEm=hoje}});
+      save();renderAll();xmsg(l.length+' fotos de '+mnome(ym)+' apagadas. Mês fechado.','var(--ok)')}
+    catch(er){xmsg('Não foi possível apagar: '+(er&&er.message||er),'var(--red)')}
+    this.disabled=false});
+  function renderAviso(){var el=$('h-aviso');if(!isAdm){el.style.display='none';return}
+    var atual=nowParts().d.slice(0,7),ms={};state.trips.forEach(function(t){var m=t.d.slice(0,7);if(m<atual&&(t.fotoS||t.fotoR))ms[m]=1});var k=Object.keys(ms).sort();
+    if(!k.length){el.style.display='none';return}
+    el.style.display='block';el.style.color='var(--warn)';el.textContent='Fechamento pendente: há fotos guardadas de '+k.map(mnome).join(', ')+'. Faça o backup e o fechamento em Cadastro, Fechamento do mês.'}
+  function renderAll(){renderSel();renderOpen();renderHis();renderCad();renderAviso()}
+  var n=nowParts();$('s-d').value=n.d;$('s-h').value=n.h;$('h-m').value=n.d.slice(0,7);var pm=new Date(Date.now()-3*3600*1000);pm.setUTCDate(1);pm.setUTCMonth(pm.getUTCMonth()-1);$('x-m').value=pm.toISOString().slice(0,7);
+  document.querySelector('nav').addEventListener('click',function(e){var t=e.target.getAttribute('data-tab');if(!t)return;
+    ['reg','his','cad'].forEach(function(k){$(k).hidden=k!==t;$('t-'+k).setAttribute('aria-selected',k===t?'true':'false')});
+    if(t==='reg'){var x=nowParts();$('s-d').value=x.d;$('s-h').value=x.h}});
+  VEX.onRemote(renderAll);
+  renderAll();
+})();
+</script>
+<script>if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});</script>
+</body></html>

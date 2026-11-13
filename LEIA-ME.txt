@@ -1,0 +1,3 @@
+VEX Diário de Bordo - app dos condutores (site separado)
+Mesmo banco de dados (Supabase) do sistema principal. O condutor só enxerga o diário de bordo.
+config.js deve ter os mesmos dados do config.js do sistema principal.

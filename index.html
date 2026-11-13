@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VEX · Diário de Bordo</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#d8392f"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=Montserrat:wght@500&display=swap">
+<style>
+/* Layout: cabeçalho branco com a marca em cinza gelo, abas por tarefa (Movimentação, Cadastro, Inventário), tabelas de trabalho no centro. */
+:root{
+  --navy:#858a8f; --strong:#858a8f; --red:#d8392f; --paper:#fbfbfc; --ink:#26282d; --line:#e3e4e7;
+  --surface:#ffffff; --muted:#6b6e75; --ok:#1f7a4d; --warn:#b26a00; --soft:#f1f2f4;
+  --band:#ffffff; --logo:#858a8f;
+  --f-display:'Chakra Petch','Arial Narrow',sans-serif; --f-body:'Barlow',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.band{background:var(--band);color:var(--strong);padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band-in{max-width:1100px;margin:0 auto;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.logo{overflow:visible;width:230px;max-width:60vw;height:auto;display:block}
+.band h1{font:600 22px/1.15 var(--f-display);margin:0;letter-spacing:.02em;text-wrap:balance}
+.band p{margin:4px 0 0;color:#858a8f;font-size:13px}
+.stripe{height:5px;background:var(--red)}
+main{max-width:1100px;margin:0 auto;padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+nav button{font:600 14px var(--f-display);letter-spacing:.03em;padding:9px 16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;border-radius:3px}
+nav button[aria-selected="true"]{background:var(--surface);color:var(--strong);border-color:var(--navy);box-shadow:inset 0 -3px 0 var(--red)}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+h2{font:600 18px var(--f-display);margin:0 0 12px;letter-spacing:.02em}
+.panel{background:var(--surface);border:1px solid var(--line);padding:16px;margin-bottom:18px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;min-width:0}
+input,select{font:400 15px var(--f-body);padding:8px 9px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:3px;min-width:0;width:100%}
+td input,td select{padding:6px 7px;font-size:14px;min-width:90px}
+.btn{font:600 14px var(--f-display);padding:10px 16px;background:var(--red);color:#fff;border:0;border-radius:3px;cursor:pointer;letter-spacing:.03em}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;font-variant-numeric:tabular-nums}
+th{font:600 12px var(--f-display);text-transform:uppercase;letter-spacing:.07em;text-align:left;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--navy);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n,th.n{text-align:right}
+.tag{display:inline-block;font:600 11px var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border:1px solid currentColor;border-radius:2px;white-space:nowrap}
+.tag.ok{color:var(--ok)} .tag.warn{color:var(--warn)} .tag.red{color:var(--red)} .tag.mut{color:var(--muted)}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 8px}
+.hint{color:var(--muted);font-size:13px;margin:8px 0 0}
+.msg{color:var(--warn);font-size:13px;margin:8px 0 0;min-height:1em}
+.tally{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.tally div{background:var(--soft);padding:8px 14px;border-left:3px solid var(--red);font-size:14px}
+.tally b{font-family:var(--f-display);font-size:19px;margin-right:6px}
+.empty{color:var(--muted);padding:14px 4px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+.row label{min-width:220px}
+@media (max-width:520px){.band h1{font-size:19px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+body{margin:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:18px}
+.card{display:block;background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--red);padding:18px;text-decoration:none;color:var(--ink)}
+.card:hover{border-color:var(--navy);border-top-color:var(--red)}
+.card h3{font:600 18px var(--f-display);margin:0 0 6px;color:var(--strong)}.card p{margin:0;color:var(--muted);font-size:14px}
+.login{max-width:380px;margin:30px auto}.login .form{grid-template-columns:1fr}
+.chip{display:inline-block;font:600 11px var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border:1px solid currentColor;border-radius:2px}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="vex" viewBox="5 30 1135 392" overflow="visible"><g style="fill:var(--logo)"><polygon points="51,39 116,40 108,218 38,288"/><polygon points="402.5,117.5 482.5,36.5 827.5,36.5 900,107.5 852.5,156 752.5,62.5 750,107.5 475,107.5 475,254 747.5,254 677.5,326 399,326"/><polygon points="505,151 777.5,151 777.5,214 505,214"/><polygon points="997.5,40 1105,40 832.5,326 722.5,326"/><polygon points="982.5,202.5 932.5,252.5 987.5,329 1112.5,329"/><text x="29" y="411" font-family="Montserrat,Barlow,Arial,sans-serif" font-weight="500" font-size="56" textLength="1089" lengthAdjust="spacing">SOLUÇÕES AUTOMOTIVAS</text></g><g fill="#d8392f"><polygon points="43,326 78,326 363,38 328,38"/><polygon points="134,326 166,326 451,38 419,38"/><polygon points="306.7,93 362.7,107 362.7,113 306.7,99"/><polygon points="217.6,183 273.6,197 273.6,203 217.6,189"/><polygon points="128.5,273 184.5,287 184.5,293 128.5,279"/></g></symbol>
+</svg>
+<header>
+  <div class="band"><div class="band-in">
+    <svg class="logo" viewBox="5 30 1135 392" overflow="visible" role="img" aria-label="VEX Soluções Automotivas"><use href="#vex"/></svg>
+    <div><h1>Diário de Bordo</h1><p>VEX Soluções Automotivas</p></div>
+  </div></div>
+  <div class="stripe"></div>
+</header>
+<main>
+  <section id="v-login" hidden>
+    <div class="panel login">
+      <h2>Entrar</h2>
+      <form class="form" id="f-login">
+        <label for="l-mail">E-mail<input type="email" id="l-mail" autocomplete="username" required></label>
+        <label for="l-pw">Senha<input type="password" id="l-pw" autocomplete="current-password" required></label>
+        <button class="btn" type="submit">Entrar</button>
+      </form>
+      <p class="msg" id="l-msg" role="status"></p>
+      <p class="hint">O acesso é liberado pela gestão da VEX. Esqueceu a senha? Peça uma nova.</p>
+    </div>
+  </section>
+  <section id="v-semacesso" hidden>
+    <div class="panel login"><h2>Aguardando liberação</h2>
+      <p>Seu usuário ainda não tem acesso. Peça à gestão para liberar.</p>
+      <p><button class="btn sec" type="button" id="b-sair">Sair</button></p></div>
+  </section>
+  <section id="v-senha" hidden>
+    <div class="panel login">
+      <h2>Trocar minha senha</h2>
+      <form class="form" id="f-pw">
+        <label for="pw1">Nova senha (mínimo 8 caracteres)<input type="password" id="pw1" minlength="8" autocomplete="new-password" required></label>
+        <label for="pw2">Repita a senha<input type="password" id="pw2" minlength="8" autocomplete="new-password" required></label>
+        <button class="btn" type="submit">Salvar senha</button>
+      </form>
+      <p class="msg" id="pw-msg" role="status"></p>
+      <p><a href="diario.html">Voltar ao diário de bordo</a></p>
+    </div>
+  </section>
+</main>
+<script>window.VEX_SOLO=true;</script>
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="vex.js"></script>
+<script>
+(async function(){
+  function $(i){return document.getElementById(i)}
+  function show(id){['v-login','v-semacesso','v-senha'].forEach(function(k){$(k).hidden=k!==id})}
+  var p=null;
+  try{p=await VEX.who();}catch(e){VEX.toast('Não foi possível conectar ao servidor.','err');}
+  VEX.paintBar(true);
+  if(!VEX.ME.user){
+    show('v-login');
+    $('f-login').addEventListener('submit',function(e){e.preventDefault();$('l-msg').textContent='Entrando…';
+      VEX.B.signIn($('l-mail').value.trim(),$('l-pw').value).then(function(r){
+        if(r.error){$('l-msg').textContent=/invalid/i.test(r.error.message)?'E-mail ou senha incorretos.':'Não foi possível entrar: '+r.error.message;return;}
+        location.href='diario.html';});});
+    return;
+  }
+  if(!p||!p.ativo){show('v-semacesso');$('b-sair').addEventListener('click',function(){VEX.B.signOut().then(function(){location.reload()})});return;}
+  if(new URLSearchParams(location.search).get('senha')!=='1'){location.replace('diario.html');return;}
+  show('v-senha');
+  $('f-pw').addEventListener('submit',function(e){e.preventDefault();var m=$('pw-msg');m.style.color='';
+    if($('pw1').value!==$('pw2').value){m.textContent='As senhas não conferem.';return;}
+    VEX.B.setPassword($('pw1').value).then(function(r){if(r&&r.error){m.textContent='Não foi possível trocar: '+r.error.message;return;}m.style.color='var(--ok)';m.textContent='Senha alterada.';$('f-pw').reset();});});
+})();
+</script>
+</body></html>
