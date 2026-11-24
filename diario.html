@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Diário de Bordo · VEX</title>
+<title>Diário de Bordo · VEX</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#d8392f"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=Montserrat:wght@500&display=swap">
 <style>
@@ -180,7 +180,7 @@ body{margin:0}</style></head><body>
 </main>
 <div id="fv" role="dialog" aria-label="Foto do odômetro"><img id="fv-img" alt="Foto do odômetro"><p id="fv-cap"></p><button type="button" id="fv-x">Fechar</button></div>
 
-<script src="vendor/jszip.min.js"></script>
+<script>window.VEX_SOLO=true;</script>
 <script src="config.js"></script>
 <script src="vendor/supabase.js"></script>
 <script src="vex.js"></script>
@@ -375,4 +375,5 @@ body{margin:0}</style></head><body>
   renderAll();
 })();
 </script>
+<script>if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});</script>
 </body></html>

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VEX · Controles da Oficina</title>
+<title>VEX · Campo</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#d8392f"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=Montserrat:wght@500&display=swap">
 <style>
@@ -66,7 +66,7 @@ body{margin:0}
 <header>
   <div class="band"><div class="band-in">
     <svg class="logo" viewBox="5 30 1135 392" overflow="visible" role="img" aria-label="VEX Soluções Automotivas"><use href="#vex"/></svg>
-    <div><h1>Controles da Oficina</h1><p>VEX Soluções Automotivas</p></div>
+    <div><h1>Diário de Bordo</h1><p>VEX Soluções Automotivas</p></div>
   </div></div>
   <div class="stripe"></div>
 </header>
@@ -80,40 +80,16 @@ body{margin:0}
         <button class="btn" type="submit">Entrar</button>
       </form>
       <p class="msg" id="l-msg" role="status"></p>
-      <p class="hint">O acesso é liberado pelo administrador. Esqueceu a senha? Peça uma nova a ele.</p>
+      <p class="hint">O acesso é liberado pela gestão da VEX. Esqueceu a senha? Peça uma nova.</p>
     </div>
   </section>
-
   <section id="v-semacesso" hidden>
-    <div class="panel"><h2>Aguardando liberação</h2>
-      <p>Seu usuário ainda não tem acesso aos controles. Peça ao administrador para liberar.</p>
+    <div class="panel login"><h2>Aguardando liberação</h2>
+      <p>Seu usuário ainda não tem acesso. Peça à gestão para liberar.</p>
       <p><button class="btn sec" type="button" id="b-sair">Sair</button></p></div>
   </section>
-
-  <section id="v-menu" hidden>
-    <div class="cards">
-      <a class="card" data-mod="cad" href="cad.html"><h3>Cadastro central</h3><p>Pessoas e veículos cadastrados uma única vez, valendo para todos os controles.</p></a>
-      <a class="card" data-mod="epi" href="uniformes-epi.html"><h3>Uniformes e EPI</h3><p>Retiradas por colaborador, termo para assinatura, estoque e cadastro.</p></a>
-      <a class="card" data-mod="ferr" href="ferramentas.html"><h3>Ferramentas</h3><p>Retirada e devolução, termo de responsabilidade e inventário.</p></a>
-      <a class="card" data-mod="comb" href="abastecimento.html"><h3>Abastecimento</h3><p>Combustível por veículo, condutor e posto, com alerta de consumo.</p></a>
-      <a class="card" data-mod="ponto" href="ponto.html"><h3>Ponto e absenteísmo</h3><p>Horários da equipe, faltas, atestados, horas extras e espelho de ponto.</p></a>
-      <a class="card" data-mod="diario" href="diario.html"><h3>Diário de bordo</h3><p>Veículos de apoio: condutor, origem, destino e km percorrido.</p></a>
-      <a class="card" data-mod="compras" href="compras.html"><h3>Compras</h3><p>Peças e materiais: o que foi comprado, onde, como foi pago e para qual placa. Conferência do cartão corporativo.</p></a>
-      <a class="card" data-mod="sim" href="simulador-he.html"><h3>Simulador de hora extra</h3><p>Quanto o mecânico recebe e quanto custa à VEX, com DSR, reflexos e encargos. Só administrador.</p></a>
-      <a class="card" data-mod="os" href="os.html"><h3>Ordens de serviço e produtividade</h3><p>OS por setor, cronômetro do mecânico, conferência e indicadores de eficiência.</p></a>
-    </div>
-
-    <div class="panel" id="v-users" hidden>
-      <h2>Usuários e permissões</h2>
-      <p class="hint" style="margin-top:0"><b>Administrador:</b> faz tudo, inclusive cadastros, estoque e usuários. <b>Operador:</b> consulta tudo e faz os lançamentos do dia a dia (retiradas, devoluções, abastecimentos, ponto). Só apaga o que ele mesmo lançou, em até 24 horas.</p>
-      <div class="tablewrap"><table style="min-width:860px">
-        <thead><tr><th>Nome</th><th>E-mail</th><th>Permissão</th><th>Módulos do operador</th><th>Acesso ativo</th></tr></thead>
-        <tbody id="u-rows"></tbody></table></div>
-      <p class="msg" id="u-msg" role="status"></p>
-      <p class="hint">Para incluir uma pessoa nova: no Supabase, em Authentication &gt; Users &gt; Add user, informe e-mail e senha. Ela aparece aqui como operador. Para motorista do diário de bordo, troque a permissão para “Condutor”; para mecânico, “Mecânico”. Para o operador, marque acima quais módulos ele pode abrir (o Ponto só aparece para quem você marcar).</p>
-    </div>
-
-    <div class="panel" id="v-pw">
+  <section id="v-senha" hidden>
+    <div class="panel login">
       <h2>Trocar minha senha</h2>
       <form class="form" id="f-pw">
         <label for="pw1">Nova senha (mínimo 8 caracteres)<input type="password" id="pw1" minlength="8" autocomplete="new-password" required></label>
@@ -121,18 +97,18 @@ body{margin:0}
         <button class="btn" type="submit">Salvar senha</button>
       </form>
       <p class="msg" id="pw-msg" role="status"></p>
+      <p><a href="diario.html">Voltar ao diário de bordo</a></p>
     </div>
   </section>
 </main>
+<script>window.VEX_SOLO=true;</script>
 <script src="config.js"></script>
 <script src="vendor/supabase.js"></script>
 <script src="vex.js"></script>
 <script>
 (async function(){
   function $(i){return document.getElementById(i)}
-  function esc(t){var d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}
-  function show(id){['v-login','v-semacesso','v-menu'].forEach(function(k){$(k).hidden=k!==id})}
-  function nextUrl(){var n=new URLSearchParams(location.search).get('next');return /^[a-z-]+\.html$/.test(n||'')?n:'index.html'}
+  function show(id){['v-login','v-semacesso','v-senha'].forEach(function(k){$(k).hidden=k!==id})}
   var p=null;
   try{p=await VEX.who();}catch(e){VEX.toast('Não foi possível conectar ao servidor.','err');}
   VEX.paintBar(true);
@@ -141,37 +117,16 @@ body{margin:0}
     $('f-login').addEventListener('submit',function(e){e.preventDefault();$('l-msg').textContent='Entrando…';
       VEX.B.signIn($('l-mail').value.trim(),$('l-pw').value).then(function(r){
         if(r.error){$('l-msg').textContent=/invalid/i.test(r.error.message)?'E-mail ou senha incorretos.':'Não foi possível entrar: '+r.error.message;return;}
-        location.href=nextUrl();});});
+        location.href='index.html';});});
     return;
   }
   if(!p||!p.ativo){show('v-semacesso');$('b-sair').addEventListener('click',function(){VEX.B.signOut().then(function(){location.reload()})});return;}
-  if(p.papel==='mecanico'&&!/[?&]senha=1/.test(location.search)){location.replace('os.html');return;}
-  show('v-menu');
-  if(p.papel==='operador'&&Array.isArray(p.modulos))Array.prototype.forEach.call(document.querySelectorAll('.card[data-mod]'),function(c){if(p.modulos.indexOf(c.getAttribute('data-mod'))<0)c.style.display='none'});
+  if(new URLSearchParams(location.search).get('senha')!=='1'){location.replace(p.papel==='mecanico'?'os.html':'diario.html');return;}
+  if(p.papel==='mecanico'){var vl=document.querySelector('#v-senha a[href="diario.html"]');if(vl){vl.href='os.html';vl.textContent='Voltar às ordens de serviço'}}
+  show('v-senha');
   $('f-pw').addEventListener('submit',function(e){e.preventDefault();var m=$('pw-msg');m.style.color='';
     if($('pw1').value!==$('pw2').value){m.textContent='As senhas não conferem.';return;}
     VEX.B.setPassword($('pw1').value).then(function(r){if(r&&r.error){m.textContent='Não foi possível trocar: '+r.error.message;return;}m.style.color='var(--ok)';m.textContent='Senha alterada.';$('f-pw').reset();});});
-  var MODS=[['epi','Uniformes e EPI'],['ferr','Ferramentas'],['comb','Abastecimento'],['ponto','Ponto'],['diario','Diário de bordo'],['os','Ordens de serviço'],['compras','Compras']];
-  function modsCel(u){
-    if(u.papel==='admin')return '<span class="hint">Todos</span>';
-    if(u.papel==='condutor')return '<span class="hint">Diário de bordo e abastecimento</span>';
-    if(u.papel==='mecanico')return '<span class="hint">Ordens de serviço, diário e abastecimento</span>';
-    var m=Array.isArray(u.modulos)?u.modulos:[];
-    return MODS.map(function(x){return '<label style="flex-direction:row;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink)"><input type="checkbox" data-id="'+u.id+'" data-f="mod" data-m="'+x[0]+'"'+(m.indexOf(x[0])>=0?' checked':'')+' style="width:auto"> '+x[1]+'</label>'}).join('');}
-  if(p.papel==='admin'){
-    $('v-users').hidden=false;
-    VEX.B.profiles().then(function(list){
-      $('u-rows').innerHTML=list.map(function(u){var me=u.id===VEX.ME.user.id;
-        return '<tr><td><input data-id="'+u.id+'" data-f="nome" value="'+esc(u.nome)+'" aria-label="Nome"></td><td>'+esc(u.email)+'</td>'+
-        '<td><select data-id="'+u.id+'" data-f="papel"'+(me?' disabled':'')+' aria-label="Permissão"><option value="operador"'+(u.papel==='operador'?' selected':'')+'>Operador</option><option value="condutor"'+(u.papel==='condutor'?' selected':'')+'>Condutor (só diário de bordo)</option><option value="mecanico"'+(u.papel==='mecanico'?' selected':'')+'>Mecânico (só ordens de serviço)</option><option value="admin"'+(u.papel==='admin'?' selected':'')+'>Administrador</option></select></td>'+
-        '<td>'+modsCel(u)+'</td><td><label style="flex-direction:row;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink)"><input type="checkbox" data-id="'+u.id+'" data-f="ativo"'+(u.ativo?' checked':'')+(me?' disabled':'')+' style="width:auto"> '+(me?'(você)':'')+'</label></td></tr>'}).join('');
-    }).catch(function(e){$('u-msg').textContent='Não foi possível listar os usuários: '+e.message;});
-    $('u-rows').addEventListener('change',function(e){var id=e.target.getAttribute('data-id');if(!id)return;var f=e.target.getAttribute('data-f'),patch={};
-      var m=$('u-msg');m.style.color='';
-      if(f==='mod'){patch.modulos=Array.prototype.map.call(document.querySelectorAll('#u-rows input[data-f="mod"][data-id="'+id+'"]:checked'),function(c){return c.getAttribute('data-m')});}
-      else patch[f]=f==='ativo'?e.target.checked:e.target.value;
-      VEX.B.setProfile(id,patch).then(function(){m.style.color='var(--ok)';m.textContent='Salvo.';},function(err){m.textContent='Não foi possível salvar: '+err.message;});});
-  }
 })();
 </script>
 </body></html>
