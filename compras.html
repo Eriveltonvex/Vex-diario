@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Compras · VEX</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=Montserrat:wght@500&display=swap">
+<style>
+/* Layout: cabeçalho branco com a marca em cinza gelo, abas por tarefa (Abastecimentos, Resumo, Cadastro), tabelas de trabalho no centro. */
+:root{
+  --navy:#858a8f; --strong:#858a8f; --red:#d8392f; --paper:#fbfbfc; --ink:#26282d; --line:#e3e4e7;
+  --surface:#ffffff; --muted:#6b6e75; --ok:#1f7a4d; --warn:#b26a00; --soft:#f1f2f4;
+  --band:#ffffff; --logo:#858a8f;
+  --f-display:'Chakra Petch','Arial Narrow',sans-serif; --f-body:'Barlow',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.band{background:var(--band);color:var(--strong);padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band-in{max-width:1100px;margin:0 auto;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.logo{overflow:visible;width:230px;max-width:60vw;height:auto;display:block}
+.band h1{font:600 22px/1.15 var(--f-display);margin:0;letter-spacing:.02em;text-wrap:balance}
+.band p{margin:4px 0 0;color:#858a8f;font-size:13px}
+.stripe{height:5px;background:var(--red)}
+main{max-width:1100px;margin:0 auto;padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+nav button{font:600 14px var(--f-display);letter-spacing:.03em;padding:9px 16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;border-radius:3px}
+nav button[aria-selected="true"]{background:var(--surface);color:var(--strong);border-color:var(--navy);box-shadow:inset 0 -3px 0 var(--red)}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+h2{font:600 18px var(--f-display);margin:0 0 12px;letter-spacing:.02em}
+.panel{background:var(--surface);border:1px solid var(--line);padding:16px;margin-bottom:18px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;min-width:0}
+input,select{font:400 15px var(--f-body);padding:8px 9px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:3px;min-width:0;width:100%}
+td input,td select{padding:6px 7px;font-size:14px;min-width:90px}
+.btn{font:600 14px var(--f-display);padding:10px 16px;background:var(--red);color:#fff;border:0;border-radius:3px;cursor:pointer;letter-spacing:.03em}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;font-variant-numeric:tabular-nums}
+th{font:600 12px var(--f-display);text-transform:uppercase;letter-spacing:.07em;text-align:left;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--navy);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n,th.n{text-align:right}
+.tag{display:inline-block;font:600 11px var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border:1px solid currentColor;border-radius:2px;white-space:nowrap}
+.tag.ok{color:var(--ok)} .tag.warn{color:var(--warn)} .tag.red{color:var(--red)} .tag.mut{color:var(--muted)}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 8px}
+.hint{color:var(--muted);font-size:13px;margin:8px 0 0}
+.msg{color:var(--warn);font-size:13px;margin:8px 0 0;min-height:1em}
+.tally{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.tally div{background:var(--soft);padding:8px 14px;border-left:3px solid var(--red);font-size:14px}
+.tally b{font-family:var(--f-display);font-size:19px;margin-right:6px}
+.empty{color:var(--muted);padding:14px 4px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+.row label{min-width:220px}
+@media (max-width:520px){.band h1{font-size:19px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:640px){#o-tab{min-width:0!important}#o-tab thead{display:none}#o-tab tr{display:block;border:1px solid var(--line);border-left:3px solid var(--red);margin-bottom:10px;padding:6px 8px}#o-tab td{display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;padding:5px 0;text-align:right}#o-tab td::before{content:attr(data-l);font:600 11px var(--f-display);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left}#o-tab td input{min-width:0;width:140px}}
+.thumb{font:600 12px var(--f-display);background:var(--soft);border:1px solid var(--line);padding:2px 8px;cursor:pointer;color:var(--navy);border-radius:2px}
+.thumb:hover{border-color:var(--red)}
+#fv{position:fixed;inset:0;background:rgba(20,22,26,.88);display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:9999;padding:16px}
+#fv img{max-width:100%;max-height:80vh;background:#fff}
+#fv p{color:#fff;margin:0;font-size:14px;text-align:center}
+#fv button{background:#fff;border:0;padding:8px 18px;font-weight:700;cursor:pointer}
+
+.tk{border:1px solid var(--line);border-left:6px solid var(--navy);background:#fff;padding:12px 14px;margin-bottom:12px}
+.tk.exec{border-left-color:var(--ok)}.tk.pausa{border-left-color:var(--warn)}.tk.concl{border-left-color:var(--red)}
+.tkh{font-size:16px;margin-bottom:4px}.tkd{font-size:16px;margin:4px 0}
+.clk{font:700 20px var(--f-display);color:var(--ink)}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.btn.big{min-height:50px;padding:12px 22px;font-size:16px;flex:1 1 150px}
+.mini{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-top:10px;padding:10px;background:var(--soft)}
+.mini[hidden]{display:none}.mini label{flex:1 1 200px}
+.oh{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px;font-size:16px}.oh .hint{margin:0 0 0 auto}
+.addt{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+nav button[hidden]{display:none}
+.itrow{display:grid;grid-template-columns:2.2fr 1.3fr .6fr .9fr 1.1fr 1fr 1fr auto;gap:10px;align-items:end;padding:10px 0;border-bottom:1px dashed var(--line)}
+.itrow label{min-width:0}.itrow .x{margin-bottom:6px}
+label[hidden]{display:none}
+.chk{flex-direction:row;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink)}
+details.panel summary{list-style:none}details.panel summary::-webkit-details-marker{display:none}
+@media(max-width:900px){.itrow{grid-template-columns:1fr 1fr}.itrow label:first-child{grid-column:1/-1}}
+body{margin:0}</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="vex" viewBox="5 30 1135 392" overflow="visible"><g style="fill:var(--logo)"><polygon points="51,39 116,40 108,218 38,288"/><polygon points="402.5,117.5 482.5,36.5 827.5,36.5 900,107.5 852.5,156 752.5,62.5 750,107.5 475,107.5 475,254 747.5,254 677.5,326 399,326"/><polygon points="505,151 777.5,151 777.5,214 505,214"/><polygon points="997.5,40 1105,40 832.5,326 722.5,326"/><polygon points="982.5,202.5 932.5,252.5 987.5,329 1112.5,329"/><text x="29" y="411" font-family="Montserrat,Barlow,Arial,sans-serif" font-weight="500" font-size="56" textLength="1089" lengthAdjust="spacing">SOLUÇÕES AUTOMOTIVAS</text></g><g fill="#d8392f"><polygon points="43,326 78,326 363,38 328,38"/><polygon points="134,326 166,326 451,38 419,38"/><polygon points="306.7,93 362.7,107 362.7,113 306.7,99"/><polygon points="217.6,183 273.6,197 273.6,203 217.6,189"/><polygon points="128.5,273 184.5,287 184.5,293 128.5,279"/></g></symbol>
+</svg>
+
+<header>
+  <div class="band"><div class="band-in">
+    <svg class="logo" viewBox="5 30 1135 392" overflow="visible" role="img" aria-label="VEX Soluções Automotivas"><use href="#vex"/></svg>
+    <div>
+      <h1>Controle de Compras</h1>
+      <p>VEX Soluções Automotivas · Rev. 00 · Novembro de 2026</p>
+    </div>
+  </div></div>
+  <div class="stripe"></div>
+</header>
+
+<main>
+  <nav role="tablist" aria-label="Seções">
+    <button role="tab" id="t-nov" aria-selected="true" data-tab="nov">Nova compra</button>
+    <button role="tab" id="t-lis" aria-selected="false" data-tab="lis">Compras</button>
+    <button role="tab" id="t-pla" aria-selected="false" data-tab="pla">Custo por placa</button>
+    <button role="tab" id="t-car" aria-selected="false" data-tab="car">Conferência do cartão</button>
+    <button role="tab" id="t-cad" aria-selected="false" data-tab="cad">Cadastro</button>
+  </nav>
+
+  <section id="nov">
+    <div class="panel">
+      <h2>Registrar compra</h2>
+      <form id="f-c">
+        <div class="form">
+          <label for="c-d">Data<input type="date" id="c-d" required></label>
+          <label for="c-f">Fornecedor / loja<input id="c-f" list="dl-for" required placeholder="Ex.: AUTO PEÇAS CENTRAL"></label>
+          <label for="c-n">Nº da nota / cupom<input id="c-n" placeholder="Opcional"></label>
+          <label for="c-co">Quem comprou<input id="c-co" required></label>
+        </div>
+        <div class="form" style="margin-top:10px">
+          <label for="c-p">Como pagou<select id="c-p"></select></label>
+          <label for="c-ca" id="l-ca">Cartão<select id="c-ca"></select></label>
+          <label for="c-v" id="l-v">Vencimento<input type="date" id="c-v"></label>
+          <label for="c-fr">Frete / outros (R$)<input type="number" id="c-fr" min="0" step="0.01" placeholder="0,00"></label>
+        </div>
+        <h3 style="margin:18px 0 8px;font-size:15px">Itens comprados e para onde vão</h3>
+        <div id="it-rows"></div>
+        <div class="acts"><button class="btn sec sm" type="button" id="it-add">+ Adicionar item</button></div>
+        <div class="form" style="margin-top:12px">
+          <label for="c-o">Observação<input id="c-o" placeholder="Opcional"></label>
+        </div>
+        <div class="tally" style="margin-top:12px"><div><b id="c-tot">R$ 0,00</b>total da compra</div><div><b id="c-qt">0</b>itens</div></div>
+        <div class="acts"><button class="btn" type="submit">Salvar compra</button></div>
+      </form>
+      <datalist id="dl-for"></datalist><datalist id="dl-pl"></datalist>
+      <p class="hint">Cada item tem o seu destino: uma placa (o custo vai para o veículo), o estoque da oficina ou uso interno. Numa mesma nota você pode ter itens de placas diferentes. Se souber, informe também a OS.</p>
+      <p class="msg" id="c-msg" role="status"></p>
+    </div>
+  </section>
+
+  <section id="lis" hidden>
+    <div class="panel">
+      <div class="row">
+        <label for="l-m">Mês<input type="month" id="l-m"></label>
+        <label for="l-pg">Pagamento<select id="l-pg"></select></label>
+        <label for="l-b">Buscar<input id="l-b" placeholder="Placa, fornecedor, peça, nota"></label>
+        <button class="btn sec" type="button" id="l-csv">Baixar planilha (CSV)</button>
+      </div>
+    </div>
+    <div class="tally" id="l-tally"></div>
+    <div class="panel"><div class="tablewrap"><table style="min-width:980px"><thead><tr><th>Data</th><th>Fornecedor / nota</th><th>Itens e destino</th><th>Pagamento</th><th class="n">Total</th><th>Situação</th><th></th></tr></thead><tbody id="l-rows"></tbody></table></div></div>
+  </section>
+
+  <section id="pla" hidden>
+    <div class="panel"><div class="row"><label for="p-m">Mês<select id="p-m"></select></label></div>
+      <p class="hint">Soma dos itens comprados para cada placa (sem o frete). “Estoque” e “Uso interno” aparecem separados. Toque numa placa para ver o que foi comprado.</p></div>
+    <div id="p-list"></div>
+    <div class="panel"><h2>Por categoria</h2><div class="tablewrap"><table style="min-width:420px"><thead><tr><th>Categoria</th><th class="n">Itens</th><th class="n">Total</th></tr></thead><tbody id="p-cat"></tbody></table></div></div>
+  </section>
+
+  <section id="car" hidden>
+    <div class="panel">
+      <div class="row"><label for="k-c">Cartão<select id="k-c"></select></label><label for="k-m">Mês da fatura<input type="month" id="k-m"></label>
+        <label for="k-v">Valor da fatura (R$)<input type="number" id="k-v" min="0" step="0.01"></label></div>
+      <div class="tally" id="k-tally" style="margin-top:12px"></div>
+      <p class="hint">Marque “Conferido” em cada compra que você achou na fatura. Informe o valor da fatura para ver a diferença. Se a diferença não fecha, falta lançar alguma compra ou há cobrança que você não reconhece.</p>
+    </div>
+    <div class="panel"><div class="tablewrap"><table style="min-width:760px"><thead><tr><th>Conferido</th><th>Data</th><th>Fornecedor / nota</th><th>Itens</th><th class="n">Total</th></tr></thead><tbody id="k-rows"></tbody></table></div></div>
+  </section>
+
+  <section id="cad" hidden>
+    <div class="panel"><h2>Cartões corporativos</h2>
+      <form class="form" id="f-ca"><label for="ca-no">Apelido<input id="ca-no" required placeholder="Ex.: CARTÃO SUPERVISOR"></label><label for="ca-fi">Final do cartão<input id="ca-fi" maxlength="4" inputmode="numeric" placeholder="1234" data-nocaps></label><label for="ca-po">Portador<input id="ca-po" placeholder="Nome de quem usa"></label><button class="btn" type="submit">Cadastrar</button></form>
+      <div class="tablewrap" style="margin-top:14px"><table style="min-width:520px"><thead><tr><th>Apelido</th><th>Final</th><th>Portador</th><th></th></tr></thead><tbody id="ca-rows"></tbody></table></div>
+      <p class="hint">Use só os 4 últimos dígitos. Nunca digite o número completo do cartão aqui.</p><p class="msg" id="ca-msg" role="status"></p></div>
+    <div class="panel"><h2>Veículos (opcional)</h2>
+      <form class="form" id="f-ve"><label for="ve-pl">Placa<input id="ve-pl" required maxlength="8"></label><label for="ve-de">Descrição<input id="ve-de" placeholder="Marca / modelo"></label><label for="ve-cl">Cliente / frota<input id="ve-cl"></label><button class="btn" type="submit">Cadastrar</button></form>
+      <div class="tablewrap" style="margin-top:14px"><table style="min-width:520px"><thead><tr><th>Placa</th><th>Descrição</th><th>Cliente</th><th></th></tr></thead><tbody id="ve-rows"></tbody></table></div>
+      <p class="hint">Serve só para sugerir a placa na hora de digitar. Placas novas também são aceitas livremente.</p><p class="msg" id="ve-msg" role="status"></p></div>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="vex.js"></script>
+<script>
+(async function(){
+  var state={cart:[],veic:[],compras:[],itens:[],fat:[]};
+  state=await VEX.boot('compras',{colls:{cart:'asc',veic:'asc',compras:'asc',itens:'asc',fat:'asc'},link:{veic:{m:'cad',c:'veic'}},seed:state});
+  VEX.central(['f-ve']);
+  function save(){VEX.save();}
+  var P=(VEX.ME&&VEX.ME.perfil)||{};
+  var PAGTO=['CARTÃO CORPORATIVO','PIX','BOLETO','DINHEIRO','TRANSFERÊNCIA','FATURADO (A PRAZO)'];
+  var CATS=['PEÇA','ÓLEO / FLUIDO','PNEU','FERRAMENTA','CONSUMÍVEL','SERVIÇO DE TERCEIRO','OUTROS'];
+  var DEST=['PLACA','ESTOQUE','USO INTERNO'];
+  function $(i){return document.getElementById(i)}
+  function esc(t){var d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}
+  function nf(n,d){return (+n).toLocaleString('pt-BR',{minimumFractionDigits:d==null?2:d,maximumFractionDigits:d==null?2:d})}
+  function rs(n){return 'R$ '+nf(n,2)}
+  function by(a,k,v){for(var i=0;i<a.length;i++)if(a[i][k]===v)return a[i];return null}
+  function hoje(){return new Date(Date.now()-3*3600*1000).toISOString().slice(0,10)}
+  function br(d){return d?d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(0,4):'—'}
+  function placa(v){return String(v||'').toUpperCase().replace(/[\s\-]/g,'')}
+  function msg(id,t,ok){var m=$(id);m.style.color=ok?'var(--ok)':'';m.textContent=t}
+  function toast(t){VEX.toast(t)}
+  function opt(list,sel){return list.map(function(x){return '<option'+(x===sel?' selected':'')+'>'+esc(x)+'</option>'}).join('')}
+  function itensDe(id){return state.itens.filter(function(i){return i.compra===id})}
+  function vItem(i){return (+i.qtd||0)*(+i.vu||0)}
+  function totItens(c){return itensDe(c.id).reduce(function(s,i){return s+vItem(i)},0)}
+  function total(c){return totItens(c)+(+c.frete||0)}
+  function cartNome(id){var k=by(state.cart,'id',id);return k?k.nome+(k.final?' ·'+k.final:''):''}
+  function destTxt(i){return i.dest==='PLACA'?i.placa:i.dest}
+
+  /* ---- nova compra ---- */
+  function itemRow(){
+    var d=document.createElement('div');d.className='itrow';
+    d.innerHTML='<label>Item<input class="i-ds" required placeholder="Ex.: TURBINA / FILTRO DE ÓLEO"></label>'+
+      '<label>Categoria<select class="i-ca">'+opt(CATS)+'</select></label>'+
+      '<label>Qtd<input class="i-q" type="number" min="0" step="0.01" value="1" required></label>'+
+      '<label>Valor unit. (R$)<input class="i-v" type="number" min="0" step="0.01" required></label>'+
+      '<label>Destino<select class="i-de">'+opt(DEST)+'</select></label>'+
+      '<label>Placa<input class="i-pl" list="dl-pl" maxlength="8" placeholder="ABC1D23"></label>'+
+      '<label>OS (opcional)<input class="i-os" placeholder="OS-0001"></label>'+
+      '<button class="x" type="button" aria-label="Remover item">×</button>';
+    return d;
+  }
+  function addItem(){$('it-rows').appendChild(itemRow());sync()}
+  function sync(){
+    var tot=0,n=0;
+    Array.prototype.forEach.call($('it-rows').children,function(r){
+      var de=r.querySelector('.i-de').value,pl=r.querySelector('.i-pl');
+      pl.disabled=de!=='PLACA';pl.required=de==='PLACA';if(de!=='PLACA')pl.value='';
+      tot+=(+r.querySelector('.i-q').value||0)*(+r.querySelector('.i-v').value||0);n++;
+    });
+    tot+=+$('c-fr').value||0;$('c-tot').textContent=rs(tot);$('c-qt').textContent=n;
+    var pg=$('c-p').value;$('l-ca').hidden=pg!=='CARTÃO CORPORATIVO';$('c-ca').required=pg==='CARTÃO CORPORATIVO';
+    $('l-v').hidden=!(pg==='BOLETO'||pg==='FATURADO (A PRAZO)');
+  }
+  $('it-rows').addEventListener('input',sync);$('it-rows').addEventListener('change',sync);$('c-fr').addEventListener('input',sync);$('c-p').addEventListener('change',sync);
+  $('it-rows').addEventListener('click',function(e){if(e.target.classList.contains('x')&&$('it-rows').children.length>1){e.target.closest('.itrow').remove();sync()}});
+  $('it-add').addEventListener('click',addItem);
+  $('f-c').addEventListener('submit',function(e){e.preventDefault();
+    var rows=Array.prototype.slice.call($('it-rows').children);if(!rows.length){toast('Adicione ao menos um item.');return}
+    var pg=$('c-p').value;if(pg==='CARTÃO CORPORATIVO'&&!$('c-ca').value){msg('c-msg','Escolha o cartão. Cadastre em Cadastro se ainda não existir.');return}
+    var id=VEX.uid(),c={id:id,d:$('c-d').value,forn:$('c-f').value.trim(),nota:$('c-n').value.trim(),comp:$('c-co').value.trim(),pg:pg,cartao:pg==='CARTÃO CORPORATIVO'?(+$('c-ca').value||$('c-ca').value):'',venc:$('l-v').hidden?'':$('c-v').value,pago:!(pg==='BOLETO'||pg==='FATURADO (A PRAZO)'),frete:+$('c-fr').value||0,obs:$('c-o').value.trim(),conf:false,por:P.nome||'',ts:Date.now()};
+    var its=rows.map(function(r){var de=r.querySelector('.i-de').value;return{id:VEX.uid(),compra:id,desc:r.querySelector('.i-ds').value.trim(),cat:r.querySelector('.i-ca').value,qtd:+r.querySelector('.i-q').value||0,vu:+r.querySelector('.i-v').value||0,dest:de,placa:de==='PLACA'?placa(r.querySelector('.i-pl').value):'',os:r.querySelector('.i-os').value.trim()}});
+    if(its.some(function(i){return i.dest==='PLACA'&&!i.placa})){msg('c-msg','Informe a placa dos itens com destino PLACA.');return}
+    state.compras.push(c);its.forEach(function(i){state.itens.push(i)});save();
+    $('f-c').reset();$('c-d').value=hoje();$('c-co').value=P.nome||'';$('it-rows').innerHTML='';addItem();sync();msg('c-msg','Compra salva: '+rs(total(c))+'.',true);renderAll();
+  });
+
+  /* ---- lista ---- */
+  function listaFiltrada(){
+    var m=$('l-m').value,pg=$('l-pg').value,b=$('l-b').value.trim().toLowerCase();
+    return state.compras.filter(function(c){
+      if(m&&(c.d||'').slice(0,7)!==m)return false;if(pg&&c.pg!==pg)return false;
+      if(b){var h=((c.forn||'')+' '+(c.nota||'')+' '+itensDe(c.id).map(function(i){return i.desc+' '+i.placa+' '+i.os}).join(' ')).toLowerCase();if(h.indexOf(b)<0)return false}
+      return true}).sort(function(a,c){return (c.d||'').localeCompare(a.d||'')||c.ts-a.ts});
+  }
+  function renderLis(){
+    var l=listaFiltrada(),tt=0,cartao=0,apagar=0;
+    l.forEach(function(c){var t=total(c);tt+=t;if(c.pg==='CARTÃO CORPORATIVO')cartao+=t;if(!c.pago)apagar+=t});
+    $('l-tally').innerHTML='<div><b>'+l.length+'</b>compras</div><div><b>'+rs(tt)+'</b>total</div><div><b>'+rs(cartao)+'</b>no cartão</div><div><b>'+rs(apagar)+'</b>a pagar</div>';
+    $('l-rows').innerHTML=l.length?l.map(function(c){var its=itensDe(c.id);
+      var sit=c.pago?'<span class="tag ok">Pago</span>':'<label class="chk"><input type="checkbox" data-a="pago" data-id="'+c.id+'" style="width:auto"> Marcar pago</label><br><span class="hint">Vence '+br(c.venc)+'</span>';
+      return '<tr><td>'+br(c.d)+'</td><td><b>'+esc(c.forn)+'</b><br><span class="hint">'+(c.nota?'Nota '+esc(c.nota)+' · ':'')+esc(c.comp||'')+'</span></td><td>'+
+        its.map(function(i){return '<div>'+esc(i.desc)+' <span class="hint">'+nf(i.qtd,i.qtd%1?2:0)+' × '+rs(i.vu)+'</span> <span class="tag '+(i.dest==='PLACA'?'ok':'mut')+'">'+esc(destTxt(i))+'</span>'+(i.os?' <span class="hint">'+esc(i.os)+'</span>':'')+'</div>'}).join('')+(c.frete?'<div class="hint">Frete/outros '+rs(c.frete)+'</div>':'')+(c.obs?'<div class="hint">'+esc(c.obs)+'</div>':'')+'</td><td>'+esc(c.pg)+(c.cartao?'<br><span class="hint">'+esc(cartNome(c.cartao))+'</span>':'')+'</td><td class="n"><b>'+rs(total(c))+'</b></td><td>'+sit+'</td><td><button class="x" data-a="rm" data-id="'+c.id+'" aria-label="Excluir compra">×</button></td></tr>'}).join(''):'<tr><td colspan="7" class="empty">Nenhuma compra neste filtro.</td></tr>';
+  }
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a'),id=+b.getAttribute('data-id');
+    if(a==='rm'){if(!confirm('Excluir esta compra e os itens dela? Só quem lançou (até 24 h) ou o administrador consegue.'))return;
+      state.itens=state.itens.filter(function(i){return i.compra!==id});var k=state.compras.findIndex(function(c){return c.id===id});if(k>=0)state.compras.splice(k,1);save();renderAll();return}
+    var i=+b.getAttribute('data-i');
+    if(a==='rmca'){state.cart.splice(i,1);save();renderAll()}
+    if(a==='rmve'){state.veic.splice(i,1);save();renderAll()}
+  });
+  document.addEventListener('change',function(e){var el=e.target,a=el.getAttribute&&el.getAttribute('data-a'),id=+el.getAttribute('data-id');
+    if(a==='pago'){var c=by(state.compras,'id',id);if(c){c.pago=el.checked;save();renderAll()}}
+    if(a==='conf'){var c2=by(state.compras,'id',id);if(c2){c2.conf=el.checked;save();renderCar()}}});
+  ['l-m','l-pg'].forEach(function(i){$(i).addEventListener('change',renderLis)});$('l-b').addEventListener('input',renderLis);
+  $('l-csv').addEventListener('click',function(){
+    var rows=[['Data','Fornecedor','Nota','Comprador','Pagamento','Cartão','Item','Categoria','Qtd','Valor unit.','Valor item','Destino','Placa','OS','Frete da compra','Total da compra']];
+    function n2(v){return String(+(+v).toFixed(2)).replace('.',',')}
+    listaFiltrada().forEach(function(c){itensDe(c.id).forEach(function(i){rows.push([br(c.d),c.forn,c.nota,c.comp,c.pg,cartNome(c.cartao),i.desc,i.cat,n2(i.qtd),n2(i.vu),n2(vItem(i)),i.dest,i.placa,i.os,n2(c.frete||0),n2(total(c))])})});
+    function q(v){v=v==null?'':String(v);return '"'+v.replace(/"/g,'""')+'"'}
+    VEX.download('Compras-VEX.csv','﻿'+rows.map(function(r){return r.map(q).join(';')}).join('\r\n'),'text/csv')});
+
+  /* ---- custo por placa ---- */
+  function meses(){var s={};state.compras.forEach(function(c){if(c.d)s[c.d.slice(0,7)]=1});return Object.keys(s).sort().reverse()}
+  function renderPla(){
+    var cur=$('p-m').value,ms=meses();$('p-m').innerHTML='<option value="">Todos os meses</option>'+ms.map(function(m){return '<option value="'+m+'">'+m.slice(5)+'/'+m.slice(0,4)+'</option>'}).join('');$('p-m').value=ms.indexOf(cur)>=0?cur:(cur===''?'':(ms[0]||''));
+    var m=$('p-m').value,g={},cat={};
+    state.compras.forEach(function(c){if(m&&(c.d||'').slice(0,7)!==m)return;itensDe(c.id).forEach(function(i){var k=i.dest==='PLACA'?i.placa:i.dest;(g[k]=g[k]||[]).push({c:c,i:i});var q=cat[i.cat]||(cat[i.cat]={n:0,t:0});q.n++;q.t+=vItem(i)})});
+    var keys=Object.keys(g).sort(function(a,b){var pa=DEST.indexOf(a)>=0?1:0,pb=DEST.indexOf(b)>=0?1:0;return pa-pb||sum(g[b])-sum(g[a])});
+    function sum(l){return l.reduce(function(s,x){return s+vItem(x.i)},0)}
+    $('p-list').innerHTML=keys.length?keys.map(function(k){var l=g[k],v=by(state.veic,'placa',k);
+      return '<details class="panel"><summary style="cursor:pointer;display:flex;gap:12px;flex-wrap:wrap;align-items:center"><b style="font-size:17px">'+esc(k)+'</b>'+(v&&v.desc?'<span class="hint" style="margin:0">'+esc(v.desc)+(v.frota?' · '+esc(v.frota):'')+'</span>':'')+'<span class="hint" style="margin:0 0 0 auto">'+l.length+' itens · <b style="color:var(--ink)">'+rs(sum(l))+'</b></span></summary>'+
+        '<div class="tablewrap"><table style="min-width:640px"><thead><tr><th>Data</th><th>Item</th><th>Fornecedor</th><th>Pagamento</th><th>OS</th><th class="n">Valor</th></tr></thead><tbody>'+l.sort(function(a,b){return (b.c.d||'').localeCompare(a.c.d||'')}).map(function(x){return '<tr><td>'+br(x.c.d)+'</td><td>'+esc(x.i.desc)+' <span class="hint">'+nf(x.i.qtd,x.i.qtd%1?2:0)+' × '+rs(x.i.vu)+'</span></td><td>'+esc(x.c.forn)+'</td><td>'+esc(x.c.pg)+'</td><td>'+esc(x.i.os)+'</td><td class="n">'+rs(vItem(x.i))+'</td></tr>'}).join('')+'</tbody></table></div></details>'}).join(''):'<div class="panel"><p class="empty">Nenhuma compra neste período.</p></div>';
+    var ck=Object.keys(cat).sort(function(a,b){return cat[b].t-cat[a].t});
+    $('p-cat').innerHTML=ck.length?ck.map(function(k){return '<tr><td>'+esc(k)+'</td><td class="n">'+cat[k].n+'</td><td class="n">'+rs(cat[k].t)+'</td></tr>'}).join(''):'<tr><td colspan="3" class="empty">Sem dados.</td></tr>';
+  }
+  $('p-m').addEventListener('change',renderPla);
+
+  /* ---- conferência do cartão ---- */
+  function renderCar(){
+    var cur=$('k-c').value;$('k-c').innerHTML=state.cart.map(function(k){return '<option value="'+k.id+'">'+esc(k.nome+(k.final?' ·'+k.final:''))+'</option>'}).join('');if(cur)$('k-c').value=cur;
+    var cid=+$('k-c').value,m=$('k-m').value;
+    var l=state.compras.filter(function(c){return +c.cartao===cid&&c.pg==='CARTÃO CORPORATIVO'&&(!m||(c.d||'').slice(0,7)===m)}).sort(function(a,b){return (a.d||'').localeCompare(b.d||'')});
+    var tt=0,tc=0;l.forEach(function(c){var t=total(c);tt+=t;if(c.conf)tc+=t});
+    var f=state.fat.filter(function(x){return x.cartao===cid&&x.mes===m})[0],val=f?f.valor:null;
+    if(document.activeElement!==$('k-v'))$('k-v').value=val==null?'':val;
+    var dif=val==null?null:val-tt;
+    $('k-tally').innerHTML='<div><b>'+rs(tt)+'</b>lançado no sistema</div><div><b>'+rs(tc)+'</b>conferido na fatura</div><div><b>'+(val==null?'—':rs(val))+'</b>valor da fatura</div><div><b style="color:'+(dif==null||Math.abs(dif)<0.005?'var(--ok)':'var(--red)')+'">'+(dif==null?'—':rs(dif))+'</b>diferença (fatura − lançado)</div>';
+    $('k-rows').innerHTML=l.length?l.map(function(c){return '<tr><td><input type="checkbox" data-a="conf" data-id="'+c.id+'"'+(c.conf?' checked':'')+' style="width:auto" aria-label="Conferido"></td><td>'+br(c.d)+'</td><td><b>'+esc(c.forn)+'</b><br><span class="hint">'+esc(c.nota?'Nota '+c.nota:'')+'</span></td><td>'+itensDe(c.id).map(function(i){return esc(i.desc)+' <span class="tag mut">'+esc(destTxt(i))+'</span>'}).join('<br>')+'</td><td class="n">'+rs(total(c))+'</td></tr>'}).join(''):'<tr><td colspan="5" class="empty">Nenhuma compra neste cartão e mês.</td></tr>';
+  }
+  $('k-c').addEventListener('change',renderCar);$('k-m').addEventListener('change',renderCar);
+  $('k-v').addEventListener('change',function(){var cid=+$('k-c').value,m=$('k-m').value;if(!cid||!m){toast('Escolha o cartão e o mês da fatura.');return}
+    var f=state.fat.filter(function(x){return x.cartao===cid&&x.mes===m})[0];var v=$('k-v').value===''?null:+$('k-v').value;
+    if(f){f.valor=v}else if(v!=null)state.fat.push({id:VEX.uid(),cartao:cid,mes:m,valor:v});save();renderCar()});
+
+  /* ---- cadastro ---- */
+  function renderCad(){
+    $('ca-rows').innerHTML=state.cart.length?state.cart.map(function(k,i){return '<tr><td><b>'+esc(k.nome)+'</b></td><td>'+esc(k.final||'—')+'</td><td>'+esc(k.portador||'—')+'</td><td><button class="x" data-a="rmca" data-i="'+i+'" aria-label="Remover cartão">×</button></td></tr>'}).join(''):'<tr><td colspan="4" class="empty">Nenhum cartão cadastrado.</td></tr>';
+    $('ve-rows').innerHTML=state.veic.length?state.veic.map(function(v,i){return '<tr><td><b>'+esc(v.placa)+'</b></td><td>'+esc(v.desc||'')+'</td><td>'+esc(v.cliente||'')+'</td><td><button class="x" data-a="rmve" data-i="'+i+'" aria-label="Remover veículo">×</button></td></tr>'}).join(''):'<tr><td colspan="4" class="empty">Nenhum veículo cadastrado.</td></tr>';
+  }
+  $('f-ca').addEventListener('submit',function(e){e.preventDefault();var f=$('ca-fi').value.replace(/\D/g,'');if(f&&f.length!==4){msg('ca-msg','Informe somente os 4 últimos dígitos.');return}
+    state.cart.push({id:VEX.uid(),nome:$('ca-no').value.trim(),final:f,portador:$('ca-po').value.trim()});$('f-ca').reset();msg('ca-msg','');save();renderAll()});
+  $('f-ve').addEventListener('submit',function(e){e.preventDefault();var p=placa($('ve-pl').value);if(by(state.veic,'placa',p)){msg('ve-msg','Placa já cadastrada.');return}
+    state.veic.push({id:VEX.uid(),placa:p,desc:$('ve-de').value.trim(),cliente:$('ve-cl').value.trim()});$('f-ve').reset();msg('ve-msg','');save();renderAll()});
+
+  /* ---- geral ---- */
+  function aba(t){['nov','lis','pla','car','cad'].forEach(function(k){$(k).hidden=k!==t;$('t-'+k).setAttribute('aria-selected',k===t?'true':'false')})}
+  document.querySelector('nav').addEventListener('click',function(e){var t=e.target.closest('[data-tab]');if(t){aba(t.getAttribute('data-tab'));renderAll()}});
+  function renderAll(){
+    $('c-p').innerHTML=opt(PAGTO,$('c-p').value);$('l-pg').innerHTML='<option value="">Todos</option>'+opt(PAGTO,$('l-pg').value);
+    var cur=$('c-ca').value;$('c-ca').innerHTML='<option value="">— escolha —</option>'+state.cart.map(function(k){return '<option value="'+k.id+'">'+esc(k.nome+(k.final?' ·'+k.final:''))+(k.portador?' · '+esc(k.portador):'')+'</option>'}).join('');$('c-ca').value=cur;
+    var forn={},pls={};state.compras.forEach(function(c){if(c.forn)forn[c.forn]=1});state.itens.forEach(function(i){if(i.placa)pls[i.placa]=1});state.veic.forEach(function(v){pls[v.placa]=1});
+    $('dl-for').innerHTML=Object.keys(forn).map(function(f){return '<option value="'+esc(f)+'">'}).join('');$('dl-pl').innerHTML=Object.keys(pls).sort().map(function(f){return '<option value="'+esc(f)+'">'}).join('');
+    renderLis();renderPla();renderCar();renderCad();sync();
+  }
+  function busy(){var a=document.activeElement;return a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)&&a.value!==''&&!a.closest('nav')&&!a.closest('#l-rows,#k-rows')}
+  function remoto(){if(busy()){setTimeout(remoto,4000);return}renderAll()}
+  VEX.onRemote(remoto);
+  $('c-d').value=hoje();$('c-co').value=P.nome||'';$('l-m').value=hoje().slice(0,7);$('k-m').value=hoje().slice(0,7);
+  addItem();renderAll();
+})();
+</script>
+</body></html>

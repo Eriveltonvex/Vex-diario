@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador de Hora Extra · VEX</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=Montserrat:wght@500&display=swap">
+<style>
+:root{--navy:#858a8f;--strong:#858a8f;--red:#d8392f;--paper:#fbfbfc;--ink:#26282d;--line:#e3e4e7;--surface:#ffffff;--muted:#6b6e75;--ok:#1f7a4d;--warn:#b26a00;--soft:#f1f2f4;--band:#ffffff;--logo:#858a8f;--f-display:'Chakra Petch','Arial Narrow',sans-serif;--f-body:'Barlow',system-ui,sans-serif;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.band{background:var(--band);color:var(--strong);padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band-in{max-width:1100px;margin:0 auto;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.logo{overflow:visible;width:230px;max-width:60vw;height:auto;display:block}
+.band h1{font:600 22px/1.15 var(--f-display);margin:0;letter-spacing:.02em;text-wrap:balance}
+.band p{margin:4px 0 0;color:#858a8f;font-size:13px}
+.stripe{height:5px;background:var(--red)}
+main{max-width:1100px;margin:0 auto;padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+h2{font:600 18px var(--f-display);margin:0 0 12px;letter-spacing:.02em}
+.sub{color:var(--muted);margin:0 0 16px}
+.panel{background:var(--surface);border:1px solid var(--line);padding:16px;margin-bottom:18px}
+.params{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;min-width:0}
+label span{text-transform:none;letter-spacing:0;font-weight:400}
+input,select{font:400 15px var(--f-body);padding:8px 9px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:3px;min-width:0;width:100%}
+input[readonly]{background:var(--soft)}
+.chk{display:flex;flex-direction:row;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;font-weight:400;color:var(--ink)}.chk input{width:auto}
+.chk label{flex-direction:row;text-transform:none;letter-spacing:0;font-size:14px;font-weight:400;color:var(--ink);margin:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--navy);padding:12px 14px}
+.card .l{color:var(--muted);font:600 12px var(--f-display);text-transform:uppercase;letter-spacing:.06em}.card .v{font:700 24px var(--f-display);margin-top:2px;font-variant-numeric:tabular-nums}.card .n{color:var(--muted);font-size:13px}
+.card.ok{border-left-color:var(--ok)}.card.ok .v{color:var(--ok)}.card.bad{border-left-color:var(--red)}.card.bad .v{color:var(--red)}.card.warn{border-left-color:var(--warn)}.card.warn .v{color:var(--warn)}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th{font:600 12px var(--f-display);text-transform:uppercase;letter-spacing:.07em;text-align:right;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--navy);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle;text-align:right}
+th:first-child,td:first-child{text-align:left}
+tr.sec td{background:var(--soft);font:600 12px var(--f-display);color:var(--muted);text-align:left;text-transform:uppercase;letter-spacing:.06em}
+tr.tot td{font-weight:700}
+.pos{color:var(--ok)}.neg{color:var(--red)}
+.tw{overflow-x:auto}
+.warn-box{background:var(--soft);border-left:3px solid var(--warn);color:var(--warn);padding:8px 12px;margin-bottom:12px;font-size:14px}
+.note{color:var(--muted);font-size:13px;margin:8px 0 0}
+button{font:600 14px var(--f-display);letter-spacing:.03em;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 16px;border-radius:3px;cursor:pointer}
+button.p{background:var(--red);border-color:var(--red);color:#fff}
+button.x{padding:2px 8px;color:var(--muted);border:0;background:none;font-size:18px}
+details{margin-bottom:18px}summary{cursor:pointer;font:600 14px var(--f-display);letter-spacing:.03em;color:var(--strong);padding:6px 0}
+details>.panel{margin-top:8px}
+.mem{font-size:14px;display:grid;grid-template-columns:1fr auto;gap:4px 12px}.mem b{text-align:right;font-variant-numeric:tabular-nums}
+td.t{font-size:13px;color:var(--muted)}
+#lanc{min-width:640px}#lanc td{text-align:left}#lanc th{text-align:left}#lanc td input,#lanc td select{padding:6px 7px;font-size:14px}
+@media (max-width:520px){.band h1{font-size:19px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="vex" viewBox="5 30 1135 392" overflow="visible"><g style="fill:var(--logo)"><polygon points="51,39 116,40 108,218 38,288"/><polygon points="402.5,117.5 482.5,36.5 827.5,36.5 900,107.5 852.5,156 752.5,62.5 750,107.5 475,107.5 475,254 747.5,254 677.5,326 399,326"/><polygon points="505,151 777.5,151 777.5,214 505,214"/><polygon points="997.5,40 1105,40 832.5,326 722.5,326"/><polygon points="982.5,202.5 932.5,252.5 987.5,329 1112.5,329"/><text x="29" y="411" font-family="Montserrat,Barlow,Arial,sans-serif" font-weight="500" font-size="56" textLength="1089" lengthAdjust="spacing">SOLUÇÕES AUTOMOTIVAS</text></g><g fill="#d8392f"><polygon points="43,326 78,326 363,38 328,38"/><polygon points="134,326 166,326 451,38 419,38"/><polygon points="306.7,93 362.7,107 362.7,113 306.7,99"/><polygon points="217.6,183 273.6,197 273.6,203 217.6,189"/><polygon points="128.5,273 184.5,287 184.5,293 128.5,279"/></g></symbol>
+</svg>
+<header>
+  <div class="band"><div class="band-in">
+    <svg class="logo" viewBox="5 30 1135 392" overflow="visible" role="img" aria-label="VEX Soluções Automotivas"><use href="#vex"/></svg>
+    <div>
+      <h1>Simulador de Hora Extra</h1>
+      <p>VEX Soluções Automotivas · Rev. 00 · Novembro de 2026</p>
+    </div>
+  </div></div>
+  <div class="stripe"></div>
+</header>
+<main>
+<p class="sub">Escolha o mecânico, lance os dias e veja se compensa. Segunda a sábado: 50%. Domingo e feriado: 100%.</p>
+
+<div class="panel">
+<div class="params">
+<div><label for="mec">Mecânico</label><select id="mec"></select></div>
+<div id="nomew" hidden><label for="nome">Nome</label><input id="nome" type="text"></div>
+<div><label for="sal">Salário base (R$) <span>· salvo só neste navegador</span></label><input id="sal" type="number" step="0.01" min="0"></div>
+<div><label for="vh">Hora de mão de obra cobrada (R$/h)</label><input id="vh" type="number" step="0.01" min="0"></div>
+<div><label for="mes">Mês das horas extras</label><input id="mes" type="month"></div>
+</div>
+</div>
+
+<div class="panel">
+<h2>Dias com hora extra</h2>
+<div class="tw"><table id="lanc"></table></div>
+<p class="note"><button id="add" type="button">+ Adicionar dia</button> &nbsp; O tipo do dia é automático (domingo, feriados nacionais e do RJ). Troque na linha se for feriado municipal ou se não for feriado.</p>
+</div>
+
+<div id="warns"></div>
+<div class="cards" id="cards"></div>
+
+<details><summary>Ver detalhes do cálculo</summary>
+<div class="panel"><h2>Comparativo: sem hora extra × com hora extra</h2><div class="tw"><table id="cmp"></table></div>
+<p class="note">Reflexos em 13º e férias + 1/3 são provisão: o mecânico recebe depois e a empresa deve reservar todo mês.</p></div>
+<div class="panel"><h2>Memória de cálculo</h2><div class="mem" id="mem"></div></div>
+</details>
+
+<details><summary>Ajustes (raramente muda)</summary>
+<div class="panel"><div class="params">
+<div><label for="adic">Adicionais fixos na base da hora (R$/mês)</label><input id="adic" type="number" step="0.01" min="0"></div>
+<div><label for="div">Divisor da hora (220 = 44 h/sem)</label><input id="div" type="number" step="1" min="1"></div>
+<div><label for="dep">Dependentes no IR</label><input id="dep" type="number" step="1" min="0"></div>
+<div><label for="regime">Regime da VEX</label><select id="regime"><option value="0">Simples Nacional (sem INSS patronal)</option><option value="28.8">Lucro presumido/real (≈ 28,8%)</option><option value="x">Personalizado</option></select></div>
+<div><label for="patr">INSS patronal + RAT + terceiros (%)</label><input id="patr" type="number" step="0.1" min="0"></div>
+<div><label for="efic">Horas extras realmente faturadas (%)</label><input id="efic" type="number" step="1" min="0" max="100"></div>
+<div><label for="marg">Margem mínima desejada (%)</label><input id="marg" type="number" step="1" min="0"></div>
+<div class="chk"><input id="multa" type="checkbox"><label for="multa">Provisionar multa de 40% do FGTS (3,2%)</label></div>
+<div class="chk"><input id="rj" type="checkbox"><label for="rj">Feriados do RJ no mês (São Sebastião, São Jorge, Corpus Christi)</label></div>
+<div class="chk"><input id="dsr100" type="checkbox"><label for="dsr100">Horas a 100% também geram DSR</label></div>
+</div>
+<p class="note">Os feriados do mês entram no DSR: nacionais (com Sexta-feira Santa), os do RJ se marcados aqui e os que você marcar como municipais nas linhas. Domingo trabalhado pago em dobro costuma não gerar DSR; deixar marcado é a hipótese mais cara. Confirme com o contador ou com a convenção.</p></div>
+</details>
+
+<div class="panel"><button class="p" id="copy">Copiar resumo</button> <span class="note" id="copied"></span>
+<p class="note">Tabelas de 2026: INSS (teto R$ 8.475,55) e IRRF com redutor da Lei 15.270/2025. DSR pela Súmula 172 do TST (horas extras ÷ dias úteis × domingos e feriados). Reflexo do DSR em férias, 13º e FGTS vale para horas extras feitas desde 20/03/2023 (TST, Tema 9). Limite legal de 2 h extras por dia (CLT, art. 59) e regras da convenção coletiva devem ser conferidos. Simulação de apoio à decisão, não substitui contador ou advogado.</p></div>
+</main>
+
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="vex.js"></script>
+<script>
+(async function(){
+var INSS_T=[[1621.00,.075],[2902.84,.09],[4354.27,.12],[8475.55,.14]];
+function inss(b){var base=Math.min(Math.max(b,0),8475.55),prev=0,t=0;for(var i=0;i<INSS_T.length;i++){var l=INSS_T[i][0];if(base>prev)t+=(Math.min(base,l)-prev)*INSS_T[i][1];prev=l}return t}
+var IR_T=[[2428.80,0,0],[2826.65,.075,182.16],[3751.05,.15,394.16],[4664.68,.225,675.49],[Infinity,.275,908.73]];
+function irProg(b){if(b<=0)return 0;for(var i=0;i<IR_T.length;i++){if(b<=IR_T[i][0])return Math.max(0,b*IR_T[i][1]-IR_T[i][2])}return 0}
+function irrf(bruto,ins,dep){var b1=bruto-ins-dep*189.59,b2=bruto-607.20,base=Math.max(0,Math.min(b1,b2)),imp=irProg(base),red=0;
+if(bruto<=5000)red=Math.min(312.89,imp);else if(bruto<=7350)red=Math.min(imp,Math.max(0,978.62-0.133145*bruto));
+return Math.max(0,imp-red)}
+function scen(p,h50,h100){var hora=(p.sal+p.adic)/p.div,v50=h50*hora*1.5,v100=h100*hora*2,he=v50+v100,base=v50+(p.dsr100?v100:0),
+dsr=p.diasUteis>0?base/p.diasUteis*p.diasDsr:0,bruto=p.sal+p.adic+he+dsr,i=inss(bruto),ir=irrf(bruto,i,p.dep),liq=bruto-i-ir,
+prov13=bruto/12,provFer=bruto/12*4/3,custo=(bruto+prov13+provFer)*(1+p.enc);
+return{hora:hora,v50:v50,v100:v100,he:he,dsr:dsr,bruto:bruto,inss:i,irrf:ir,liq:liq,fgts:bruto*.08,prov13:prov13,provFer:provFer,enc:(bruto+prov13+provFer)*p.enc,custo:custo,refl:(he+dsr)*(1/12+1/9)}}
+function pad(n){return(n<10?'0':'')+n}
+function easter(y){var a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return new Date(Date.UTC(y,mo-1,da))}
+function md(d){return pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate())}
+function nacionais(y){var es=easter(y);return['01-01','04-21','05-01','09-07','10-12','11-02','11-15','11-20','12-25',md(new Date(es.getTime()-2*864e5))]}
+function rjHol(y){var es=easter(y);return['01-20','04-23',md(new Date(es.getTime()+60*864e5))]}
+function wday(iso){var a=iso.split('-');return new Date(Date.UTC(+a[0],+a[1]-1,+a[2])).getUTCDay()}
+var WD=['dom','seg','ter','qua','qui','sex','sáb'];
+
+var state={pessoas:[]};
+try{state=await VEX.boot('cad',{colls:{pessoas:'asc',veic:'asc'},seed:{pessoas:[],veic:[]}})}catch(e){}
+var mecs=(state.pessoas||[]).filter(function(p){return p.ativo!==false&&(p.papeis||[]).indexOf('mecanico')>=0}).map(function(p){return p.nome}).sort();
+
+var KEY='vex_sim_he_v3',DEF={mec:'',nome:'',mes:'',adic:0,div:220,dep:0,regime:'0',patr:0,vh:130,efic:80,marg:20,multa:false,rj:true,dsr100:true,sal:{},lanc:[]};
+var S=Object.assign({},DEF);
+try{var raw=localStorage.getItem(KEY);if(raw)S=Object.assign({},DEF,JSON.parse(raw))}catch(e){}
+if(!S.sal||typeof S.sal!=='object')S.sal={};
+var BRL=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
+function $(i){return document.getElementById(i)}
+function f(v){return BRL.format(v)}
+function sg(v){return(v>0?'+':'')+BRL.format(v)}
+function n(i){var v=parseFloat($(i).value);return isNaN(v)?0:v}
+function esc(t){var d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}
+function today(){return new Date(Date.now()-3*3600*1000).toISOString().slice(0,10)}
+if(!S.mes)S.mes=today().slice(0,7);
+S.lanc=(S.lanc||[]).filter(function(l){return l.d&&l.d.slice(0,7)===S.mes});
+
+['adic','div','dep','regime','patr','vh','efic','marg','mes'].forEach(function(i){$(i).value=S[i]});
+$('multa').checked=!!S.multa;$('rj').checked=!!S.rj;$('dsr100').checked=!!S.dsr100;
+$('mec').innerHTML='<option value="">— ESCOLHA —</option>'+mecs.map(function(m){return'<option value="'+esc(m)+'">'+esc(m)+'</option>'}).join('')+'<option value="*">OUTRO (DIGITAR NOME)</option>';
+$('mec').value=(S.mec==='*'||mecs.indexOf(S.mec)>=0)?S.mec:(mecs.length?'':'*');
+$('nome').value=S.nome||'';
+
+function nomeAtual(){var m=$('mec').value;return m==='*'?($('nome').value||'').trim().toUpperCase():m}
+function loadSal(){var k=nomeAtual();$('sal').value=k&&S.sal[k]!=null?S.sal[k]:''}
+$('nomew').hidden=$('mec').value!=='*';loadSal();
+
+function tipoAuto(iso){var w=wday(iso),a=iso.split('-'),k=a[1]+'-'+a[2];if(w===0)return'DOM';if(nacionais(+a[0]).indexOf(k)>=0)return'NAC';if($('rj').checked&&rjHol(+a[0]).indexOf(k)>=0)return'MUN';return'NORMAL'}
+function lancRender(){var h='<tr><th>Data</th><th>Dia / tipo</th><th>Tipo do dia</th><th>Horas extras</th><th>Taxa</th><th></th></tr>';
+if(!S.lanc.length)h+='<tr><td colspan="6" class="t" style="text-align:center">Nenhum dia lançado. Clique em "+ Adicionar dia".</td></tr>';
+S.lanc.forEach(function(l,i){var a=tipoAuto(l.d),t=l.t||'AUTO',dom=wday(l.d)===0,taxa=dom||t==='NAC'||t==='MUN'||(t==='AUTO'&&(a==='NAC'||a==='MUN'))?'100%':'50%';
+h+='<tr><td><input type="date" data-i="'+i+'" data-k="d" value="'+l.d+'" min="'+S.mes+'-01" max="'+S.mes+'-31"></td><td class="t">'+WD[wday(l.d)]+(a==='DOM'?' · domingo':a==='NAC'?' · feriado nacional':a==='MUN'?' · feriado do RJ':'')+'</td>'+
+'<td><select data-i="'+i+'" data-k="t"'+(dom?' disabled':'')+'><option value="AUTO"'+(t==='AUTO'?' selected':'')+'>AUTOMÁTICO</option><option value="NAC"'+(t==='NAC'?' selected':'')+'>FERIADO NACIONAL</option><option value="MUN"'+(t==='MUN'?' selected':'')+'>FERIADO MUNICIPAL</option><option value="NORMAL"'+(t==='NORMAL'?' selected':'')+'>NÃO É FERIADO</option></select></td>'+
+'<td><input type="number" step="0.5" min="0" data-i="'+i+'" data-k="h" value="'+l.h+'" style="width:90px"></td><td><b>'+taxa+'</b></td><td><button class="x" data-del="'+i+'" type="button" aria-label="Remover dia">×</button></td></tr>'});
+$('lanc').innerHTML=h}
+
+// classifica cada lançamento: 50 ou 100
+function classe(l){var w=wday(l.d);if(w===0)return 100;var t=l.t||'AUTO';if(t==='NAC'||t==='MUN')return 100;if(t==='NORMAL')return 50;var a=tipoAuto(l.d);return a==='NAC'||a==='MUN'?100:50}
+function feriadosMes(){var a=S.mes.split('-'),y=+a[0],m=+a[1],set={};
+nacionais(y).forEach(function(k){if(k.slice(0,2)===pad(m))set[y+'-'+k]=1});
+if($('rj').checked)rjHol(y).forEach(function(k){if(k.slice(0,2)===pad(m))set[y+'-'+k]=1});
+S.lanc.forEach(function(l){if(l.t==='MUN'||l.t==='NAC')set[l.d]=1;if(l.t==='NORMAL')delete set[l.d]});
+return Object.keys(set).filter(function(d){return wday(d)!==0})}
+function domingos(){var a=S.mes.split('-'),y=+a[0],m=+a[1],c=0,dim=new Date(Date.UTC(y,m,0)).getUTCDate();for(var d=1;d<=dim;d++)if(new Date(Date.UTC(y,m-1,d)).getUTCDay()===0)c++;return c}
+function dim(){var a=S.mes.split('-');return new Date(Date.UTC(+a[0],+a[1],0)).getUTCDate()}
+
+function row(l,a,b,opt){opt=opt||{};var d=b-a;return'<tr'+(opt.cls?' class="'+opt.cls+'"':'')+'><td>'+l+'</td><td>'+f(a)+'</td><td>'+f(b)+'</td><td class="'+(d>0.004?(opt.inv?'neg':'pos'):'')+'">'+(Math.abs(d)<0.005?'–':sg(d))+'</td></tr>'}
+function sec(t){return'<tr class="sec"><td colspan="4">'+t+'</td></tr>'}
+var last='';
+function render(){
+var dom=domingos(),fer=feriadosMes().length,du=Math.max(0,dim()-dom-fer),
+patr=n('patr')/100,
+p={sal:n('sal'),adic:n('adic'),div:Math.max(1,n('div')),dep:n('dep'),diasUteis:du,diasDsr:dom+fer,dsr100:$('dsr100').checked,enc:.08+patr+($('multa').checked?.032:0)},
+h50=0,h100=0,porDia={};
+S.lanc.forEach(function(l){var h=parseFloat(l.h)||0;if(classe(l)===100)h100+=h;else{h50+=h;porDia[l.d]=(porDia[l.d]||0)+h}});
+var hrs=h50+h100,s0=scen(p,0,0),s1=scen(p,h50,h100);
+var custoEx=s1.custo-s0.custo,liqEx=s1.liq-s0.liq,rec=hrs*n('vh')*Math.min(100,n('efic'))/100,res=rec-custoEx,mg=rec>0?res/rec*100:0;
+var be=hrs>0&&n('efic')>0?custoEx/(hrs*n('efic')/100):0,efMin=hrs>0&&n('vh')>0?custoEx/(hrs*n('vh'))*100:0;
+var vc='warn',vt='No limite';if(hrs===0){vt='Lance as horas';vc=''}else if(res<=0){vt='Não compensa';vc='bad'}else if(mg>=n('marg')){vt='Compensa';vc='ok'}
+var w='';if(!p.sal)w+='<div class="warn-box">Informe o salário do mecânico.</div>';
+Object.keys(porDia).forEach(function(d){if(porDia[d]>2)w+='<div class="warn-box">'+d.slice(8)+'/'+d.slice(5,7)+': '+porDia[d]+' h extras no dia, acima do limite de 2 h/dia (CLT, art. 59).</div>'});
+$('warns').innerHTML=w;
+$('cards').innerHTML=
+'<div class="card '+vc+'"><div class="l">Veredito</div><div class="v">'+vt+'</div><div class="n">'+hrs.toFixed(1).replace('.',',')+' h ('+h50.toFixed(1).replace('.',',')+' a 50% + '+h100.toFixed(1).replace('.',',')+' a 100%) · margem '+mg.toFixed(1).replace('.',',')+'% (mín. '+n('marg')+'%)</div></div>'+
+'<div class="card"><div class="l">Mecânico ganha a mais (líquido)</div><div class="v">'+f(liqEx)+'</div><div class="n">Bruto extra '+f(s1.bruto-s0.bruto)+' (inclui DSR '+f(s1.dsr)+')</div></div>'+
+'<div class="card"><div class="l">Custo extra para a VEX</div><div class="v">'+f(custoEx)+'</div><div class="n">'+(hrs?f(custoEx/hrs)+' por hora extra':'')+'</div></div>'+
+'<div class="card"><div class="l">Receita extra estimada</div><div class="v">'+f(rec)+'</div><div class="n">Resultado '+sg(res)+'</div></div>'+
+'<div class="card"><div class="l">Hora cobrada mínima p/ empatar</div><div class="v">'+f(be)+'</div><div class="n">ou faturar ao menos '+efMin.toFixed(0)+'% das horas</div></div>';
+var h='<tr><th></th><th>Sem hora extra</th><th>Com hora extra</th><th>Diferença</th></tr>';
+h+=sec('Mecânico')+row('Salário + adicionais',p.sal+p.adic,p.sal+p.adic)+row('Hora extra 50%',0,s1.v50)+row('Hora extra 100%',0,s1.v100)+row('DSR sobre horas extras',0,s1.dsr)+row('Total bruto',s0.bruto,s1.bruto,{cls:'tot'})+row('(−) INSS',s0.inss,s1.inss,{inv:true})+row('(−) IRRF',s0.irrf,s1.irrf,{inv:true})+row('Líquido no mês',s0.liq,s1.liq,{cls:'tot'})+row('FGTS depositado (8%)',s0.fgts,s1.fgts)+row('Reflexos em 13º e férias + 1/3 (bruto, recebe depois)',0,s1.refl);
+h+=sec('Empresa (VEX)')+row('Folha bruta',s0.bruto,s1.bruto)+row('Provisão 13º',s0.prov13,s1.prov13)+row('Provisão férias + 1/3',s0.provFer,s1.provFer)+row('Encargos',s0.enc,s1.enc)+row('Custo total mensal',s0.custo,s1.custo,{cls:'tot',inv:true});
+$('cmp').innerHTML=h;
+$('mem').innerHTML=
+'<span>Valor da hora normal</span><b>'+f(s1.hora)+'</b>'+
+'<span>Hora extra 50% ('+h50+' h × 1,5)</span><b>'+f(s1.v50)+'</b>'+
+'<span>Hora extra 100% ('+h100+' h × 2)</span><b>'+f(s1.v100)+'</b>'+
+'<span>Dias úteis (seg–sáb sem feriado)</span><b>'+du+'</b>'+
+'<span>Domingos + feriados</span><b>'+dom+' + '+fer+'</b>'+
+'<span>DSR: base '+(p.dsr100?'(50% + 100%)':'(só 50%)')+' ÷ dias úteis × domingos e feriados</span><b>'+f(s1.dsr)+'</b>'+
+'<span>Reflexo 13º (1/12 de HE + DSR)</span><b>'+f((s1.he+s1.dsr)/12)+'</b>'+
+'<span>Reflexo férias + 1/3</span><b>'+f((s1.he+s1.dsr)/9)+'</b>'+
+'<span>Encargos sobre HE + DSR + reflexos</span><b>'+f(s1.enc-s0.enc)+'</b>';
+last='SIMULADOR DE HORA EXTRA – VEX\n'+(nomeAtual()||'Mecânico')+' | Mês '+S.mes+' | Salário '+f(p.sal)+'\nHE 50%: '+h50+' h | HE 100%: '+h100+' h | DSR '+f(s1.dsr)+' ('+du+' dias úteis, '+(dom+fer)+' domingos/feriados)\n'+
+'Mecânico: bruto '+f(s0.bruto)+' → '+f(s1.bruto)+' | líquido '+f(s0.liq)+' → '+f(s1.liq)+' ('+sg(liqEx)+')\nVEX: custo mensal '+f(s0.custo)+' → '+f(s1.custo)+' ('+sg(custoEx)+')\n'+
+'Receita extra estimada '+f(rec)+' | Resultado '+sg(res)+' | Margem '+mg.toFixed(1)+'% | Veredito: '+vt+'\nHora cobrada mínima para empatar: '+f(be);
+persist()}
+function persist(){['adic','div','dep','regime','patr','vh','efic','marg','mes'].forEach(function(i){S[i]=$(i).value});S.multa=$('multa').checked;S.rj=$('rj').checked;S.dsr100=$('dsr100').checked;S.mec=$('mec').value;S.nome=$('nome').value;
+var k=nomeAtual();if(k&&$('sal').value!=='')S.sal[k]=parseFloat($('sal').value)||0;
+try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+$('mec').addEventListener('change',function(){$('nomew').hidden=$('mec').value!=='*';loadSal();render()});
+$('nome').addEventListener('input',function(){$('nome').value=$('nome').value.toUpperCase();loadSal();render()});
+$('mes').addEventListener('input',function(){if(!$('mes').value)return;S.mes=$('mes').value;S.lanc=S.lanc.filter(function(l){return l.d.slice(0,7)===S.mes});lancRender();render()});
+$('add').onclick=function(){var d=S.mes+'-01',used=S.lanc.map(function(l){return l.d}).sort();if(used.length){var u=used[used.length-1],dt=new Date(Date.UTC(+u.slice(0,4),+u.slice(5,7)-1,+u.slice(8))+864e5).toISOString().slice(0,10);d=dt.slice(0,7)===S.mes?dt:u}
+else if(today().slice(0,7)===S.mes)d=today();
+S.lanc.push({d:d,t:'AUTO',h:2});lancRender();render()};
+$('lanc').addEventListener('input',function(e){var t=e.target,i=t.getAttribute('data-i');if(i==null)return;var k=t.getAttribute('data-k');if(k==='h')S.lanc[i].h=parseFloat(t.value)||0;else if(k==='d'){if(!t.value||t.value.slice(0,7)!==S.mes)return;S.lanc[i].d=t.value;lancRender()}else if(k==='t'){S.lanc[i].t=t.value;lancRender()}render()});
+$('lanc').addEventListener('click',function(e){var i=e.target.getAttribute&&e.target.getAttribute('data-del');if(i!=null){S.lanc.splice(+i,1);lancRender();render()}});
+$('regime').addEventListener('change',function(){var v=$('regime').value;if(v!=='x')$('patr').value=v;render()});
+$('patr').addEventListener('input',function(){var v=$('patr').value;$('regime').value=(v==='0'||v===''?'0':(v==='28.8'?'28.8':'x'));render()});
+['sal','vh','adic','div','dep','efic','marg'].forEach(function(i){$(i).addEventListener('input',render)});
+['multa','rj','dsr100'].forEach(function(i){$(i).addEventListener('change',function(){lancRender();render()})});
+$('copy').onclick=function(){var ok=function(m){$('copied').textContent=m};try{navigator.clipboard.writeText(last).then(function(){ok('Resumo copiado.')},function(){ok('Não consegui copiar; selecione e copie manualmente.')})}catch(e){ok('Não consegui copiar.')}};
+lancRender();render();
+})();
+</script>
+</body>
+</html>

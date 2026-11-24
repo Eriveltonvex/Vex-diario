@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Controle de Ponto e Absenteísmo · VEX</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=Montserrat:wght@500&display=swap">
+<style>
+/* Layout: cabeçalho branco com a marca em cinza gelo, abas por tarefa (Ponto do dia, Espelho, Absenteísmo, Cadastro), tabelas de trabalho no centro. */
+:root{
+  --navy:#858a8f; --strong:#858a8f; --red:#d8392f; --paper:#fbfbfc; --ink:#26282d; --line:#e3e4e7;
+  --surface:#ffffff; --muted:#6b6e75; --ok:#1f7a4d; --warn:#b26a00; --soft:#f1f2f4;
+  --band:#ffffff; --logo:#858a8f;
+  --f-display:'Chakra Petch','Arial Narrow',sans-serif; --f-body:'Barlow',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.band{background:var(--band);color:var(--strong);padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band-in{max-width:1100px;margin:0 auto;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.logo{overflow:visible;width:230px;max-width:60vw;height:auto;display:block}
+.band h1{font:600 22px/1.15 var(--f-display);margin:0;letter-spacing:.02em;text-wrap:balance}
+.band p{margin:4px 0 0;color:#858a8f;font-size:13px}
+.stripe{height:5px;background:var(--red)}
+main{max-width:1100px;margin:0 auto;padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+nav button{font:600 14px var(--f-display);letter-spacing:.03em;padding:9px 16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;border-radius:3px}
+nav button[aria-selected="true"]{background:var(--surface);color:var(--strong);border-color:var(--navy);box-shadow:inset 0 -3px 0 var(--red)}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+h2{font:600 18px var(--f-display);margin:0 0 12px;letter-spacing:.02em}
+.panel{background:var(--surface);border:1px solid var(--line);padding:16px;margin-bottom:18px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;min-width:0}
+input,select{font:400 15px var(--f-body);padding:8px 9px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:3px;min-width:0;width:100%}
+td input,td select{padding:6px 7px;font-size:14px;min-width:90px}
+.btn{font:600 14px var(--f-display);padding:10px 16px;background:var(--red);color:#fff;border:0;border-radius:3px;cursor:pointer;letter-spacing:.03em}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;font-variant-numeric:tabular-nums}
+th{font:600 12px var(--f-display);text-transform:uppercase;letter-spacing:.07em;text-align:left;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--navy);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n,th.n{text-align:right}
+.tag{display:inline-block;font:600 11px var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border:1px solid currentColor;border-radius:2px;white-space:nowrap}
+.tag.ok{color:var(--ok)} .tag.warn{color:var(--warn)} .tag.red{color:var(--red)} .tag.mut{color:var(--muted)}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 8px}
+.hint{color:var(--muted);font-size:13px;margin:8px 0 0}
+.msg{color:var(--warn);font-size:13px;margin:8px 0 0;min-height:1em}
+.tally{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.tally div{background:var(--soft);padding:8px 14px;border-left:3px solid var(--red);font-size:14px}
+.tally b{font-family:var(--f-display);font-size:19px;margin-right:6px}
+.empty{color:var(--muted);padding:14px 4px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+.row label{min-width:220px}
+@media (max-width:520px){.band h1{font-size:19px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+body{margin:0}</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="vex" viewBox="5 30 1135 392" overflow="visible"><g style="fill:var(--logo)"><polygon points="51,39 116,40 108,218 38,288"/><polygon points="402.5,117.5 482.5,36.5 827.5,36.5 900,107.5 852.5,156 752.5,62.5 750,107.5 475,107.5 475,254 747.5,254 677.5,326 399,326"/><polygon points="505,151 777.5,151 777.5,214 505,214"/><polygon points="997.5,40 1105,40 832.5,326 722.5,326"/><polygon points="982.5,202.5 932.5,252.5 987.5,329 1112.5,329"/><text x="29" y="411" font-family="Montserrat,Barlow,Arial,sans-serif" font-weight="500" font-size="56" textLength="1089" lengthAdjust="spacing">SOLUÇÕES AUTOMOTIVAS</text></g><g fill="#d8392f"><polygon points="43,326 78,326 363,38 328,38"/><polygon points="134,326 166,326 451,38 419,38"/><polygon points="306.7,93 362.7,107 362.7,113 306.7,99"/><polygon points="217.6,183 273.6,197 273.6,203 217.6,189"/><polygon points="128.5,273 184.5,287 184.5,293 128.5,279"/></g></symbol>
+</svg>
+
+<header>
+  <div class="band"><div class="band-in">
+    <svg class="logo" viewBox="5 30 1135 392" overflow="visible" role="img" aria-label="VEX Soluções Automotivas"><use href="#vex"/></svg>
+    <div>
+      <h1>Controle de Ponto e Absenteísmo</h1>
+      <p>VEX Soluções Automotivas · Rev. 00 · Novembro de 2026</p>
+    </div>
+  </div></div>
+  <div class="stripe"></div>
+</header>
+
+<main>
+  <nav role="tablist" aria-label="Seções">
+    <button role="tab" id="t-dia" aria-selected="true" data-tab="dia">Ponto do dia</button>
+    <button role="tab" id="t-esp" aria-selected="false" data-tab="esp">Espelho</button>
+    <button role="tab" id="t-abs" aria-selected="false" data-tab="abs">Absenteísmo</button>
+    <button role="tab" id="t-cad" aria-selected="false" data-tab="cad">Cadastro</button>
+  </nav>
+
+  <section id="dia">
+    <div class="panel">
+      <h2>Ponto do dia</h2>
+      <div class="form" style="margin-bottom:12px">
+        <button class="btn sec" type="button" id="d-ant" aria-label="Dia anterior">‹ Dia anterior</button>
+        <label for="d-d">Data<input type="date" id="d-d"></label>
+        <button class="btn sec" type="button" id="d-prox" aria-label="Próximo dia">Próximo dia ›</button>
+        <button class="btn sec" type="button" id="d-hoje">Hoje</button>
+      </div>
+      <p class="hint" id="d-info" style="margin:0 0 12px"></p>
+      <div class="tablewrap"><table style="min-width:980px">
+        <thead><tr><th>Colaborador</th><th>Entrada</th><th>Saída almoço</th><th>Volta almoço</th><th>Saída</th><th>Ocorrência</th><th>Observação</th><th class="n">Trabalhado</th><th class="n">Saldo</th><th>Situação</th><th></th></tr></thead>
+        <tbody id="d-rows"></tbody></table></div>
+      <p class="hint">Lance os horários como o colaborador registrou. Preencha só entrada e saída final e o sistema desconta o intervalo padrão. Em falta, atestado, folga, férias ou licença, deixe os horários em branco e escolha a ocorrência. O botão “Agora” grava a hora atual no próximo horário vazio.</p>
+      <p class="hint">Digite os horários reais. Horários idênticos todos os dias (ex.: sempre 08:00 e 17:00) não têm valor como prova em ação trabalhista (Súmula 338 do TST).</p>
+      <p class="msg" id="d-msg" role="status"></p>
+    </div>
+  </section>
+
+  <section id="esp" hidden>
+    <div class="panel">
+      <h2>Espelho de ponto</h2>
+      <div class="form" style="margin-bottom:12px">
+        <label for="e-p">Colaborador<select id="e-p"></select></label>
+        <label for="e-m">Mês<input type="month" id="e-m"></label>
+        <button class="btn" type="button" id="e-doc">Gerar espelho para assinatura</button>
+        <button class="btn sec" type="button" id="e-csv">Baixar planilha (CSV)</button>
+      </div>
+      <div class="tally" id="e-tally"></div>
+      <div class="tablewrap"><table style="min-width:900px">
+        <thead><tr><th>Data</th><th>Dia</th><th>Entrada</th><th>Saída almoço</th><th>Volta almoço</th><th>Saída</th><th>Ocorrência / situação</th><th class="n">Trabalhado</th><th class="n">Saldo</th><th>Observação</th></tr></thead>
+        <tbody id="e-rows"></tbody></table></div>
+      <p class="hint">O saldo de cada dia só conta fora da tolerância (CLT art. 58 §1º: até 10 min no dia). O espelho gerado traz o resumo do mês e campos de assinatura do colaborador e do responsável.</p>
+      <p class="msg" id="e-msg" role="status"></p>
+    </div>
+  </section>
+
+  <section id="abs" hidden>
+    <div class="panel">
+      <h2>Absenteísmo</h2>
+      <div class="form" style="margin-bottom:12px">
+        <label for="a-m">Mês<input type="month" id="a-m"></label>
+        <button class="btn sec" type="button" id="a-csv">Baixar planilha (CSV)</button>
+      </div>
+      <div class="tally" id="a-tally"></div>
+      <div class="tablewrap"><table style="min-width:900px">
+        <thead><tr><th>Colaborador</th><th class="n">Faltas</th><th class="n">Atestados</th><th class="n">Horas perdidas</th><th class="n">Atrasos / saídas antecipadas</th><th class="n">Horas extras</th><th class="n">Saldo do mês</th><th class="n">Absenteísmo</th><th>Situação</th></tr></thead>
+        <tbody id="a-rows"></tbody></table></div>
+      <p class="hint">Taxa de absenteísmo = horas de falta e atestado ÷ horas previstas no período. Só entram dias já lançados (com horário ou ocorrência); dias sem lançamento aparecem em “Sem registro” e não contam como falta. Férias, licenças, folgas de compensação e feriados saem das horas previstas.</p>
+    </div>
+    <div class="panel">
+      <h2>Por tipo de ocorrência</h2>
+      <div id="a-oc"></div>
+    </div>
+    <div class="panel">
+      <h2>Últimos 6 meses</h2>
+      <div id="a-trend"></div>
+    </div>
+  </section>
+
+  <section id="cad" hidden>
+    <div class="panel">
+      <h2>Parâmetros</h2>
+      <div class="form">
+        <label for="c-tol">Tolerância diária (min)<input type="number" id="c-tol" min="0" max="60" step="1"></label>
+        <label for="c-meta">Meta de absenteísmo (%)<input type="number" id="c-meta" min="0" max="100" step="0.1"></label>
+        <label for="c-int">Intervalo padrão (min)<input type="number" id="c-int" min="0" max="240" step="5"></label>
+      </div>
+      <p class="hint">Tolerância: diferenças de até esse tempo no dia não geram atraso nem hora extra (a CLT admite até 10 minutos). Intervalo padrão: descontado quando só entrada e saída final são lançadas.</p>
+    </div>
+
+    <div class="panel">
+      <h2>Colaboradores</h2>
+      <form class="form" id="f-p">
+        <label for="p-no">Nome<input id="p-no" required></label>
+        <label for="p-ca">Cargo<input id="p-ca" value="Mecânico"></label>
+        <label for="p-ma">Matrícula<input id="p-ma"></label>
+        <label for="p-ad">Admissão<input type="date" id="p-ad"></label>
+        <label for="p-ju">Jornada seg a sex<input type="time" id="p-ju" value="08:48" required></label>
+        <label for="p-js">Jornada sábado<input type="time" id="p-js" value="00:00"></label>
+        <button class="btn" type="submit">Cadastrar</button>
+      </form>
+      <div class="tablewrap" style="margin-top:14px"><table style="min-width:900px">
+        <thead><tr><th>Nome</th><th>Cargo</th><th>Matrícula</th><th>Admissão</th><th>Seg a sex (h:min)</th><th>Sábado (h:min)</th><th>Ativo</th><th></th></tr></thead>
+        <tbody id="p-rows"></tbody></table></div>
+      <p class="hint">A jornada é o tempo de trabalho por dia, sem o intervalo (ex.: 08:48 = 44 h semanais em 5 dias). Colaborador com registros não é apagado: inative-o.</p>
+      <p class="msg" id="p-msg" role="status"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Feriados e dias sem expediente</h2>
+      <form class="form" id="f-f">
+        <label for="f-d">Data<input type="date" id="f-d" required></label>
+        <label for="f-n">Descrição<input id="f-n" required placeholder="Ex.: Natal"></label>
+        <button class="btn" type="submit">Cadastrar</button>
+      </form>
+      <div class="tablewrap" style="margin-top:14px"><table style="min-width:480px">
+        <thead><tr><th>Data</th><th>Descrição</th><th></th></tr></thead>
+        <tbody id="f-rows"></tbody></table></div>
+      <p class="hint">Nesses dias a jornada prevista é zero. Quem trabalhar conta tudo como hora extra a 100%. Confira os feriados municipais e estaduais da sua cidade.</p>
+      <p class="msg" id="f-msg" role="status"></p>
+    </div>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="vex.js"></script>
+<script>
+(async function(){
+  var NOMES=['Marcelo Thimotheo','Gabriel Peters','William Otero','Paulo Índio','Edson Brito','Paulo José','Eduardo Lima'];
+  var FER=[['2026-11-20','Consciência Negra'],['2026-12-25','Natal'],['2027-01-01','Confraternização Universal'],['2027-03-26','Sexta-feira Santa'],['2027-04-21','Tiradentes'],['2027-05-01','Dia do Trabalhador'],['2027-09-07','Independência do Brasil'],['2027-10-12','Nossa Senhora Aparecida'],['2027-11-02','Finados'],['2027-11-15','Proclamação da República'],['2027-11-20','Consciência Negra'],['2027-12-25','Natal']];
+  var state={
+    pes:NOMES.map(function(n){return{nome:n,cargo:'Mecânico',mat:'',adm:'',jdu:528,jsab:0,ativo:true}}),
+    fer:FER.map(function(f){return{d:f[0],nome:f[1]}}),
+    reg:[],
+    cfg:[{tol:10,meta:3,intv:60}]
+  };
+  state=await VEX.boot('ponto',{colls:{pes:'asc',fer:'asc',reg:'asc',cfg:'asc'},link:{pes:{m:'cad',c:'pessoas',where:function(d){return (d.jdu||0)>0}}},seed:state});
+  VEX.central(['f-p']);
+  function save(){VEX.save();}
+  function $(i){return document.getElementById(i)}
+  function esc(t){var d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}
+  function fmt(d){if(!d)return'—';var a=d.split('-');return a[2]+'/'+a[1]+'/'+a[0]}
+  function nowParts(){var iso=new Date(Date.now()-3*3600*1000).toISOString();return{d:iso.slice(0,10),h:iso.slice(11,16)}}
+  function today(){return nowParts().d}
+  function nf(n,d){return (+n).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
+  function by(arr,k,v){for(var i=0;i<arr.length;i++)if(arr[i][k]===v)return arr[i];return null}
+  var DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var OC={falta:'Falta injustificada',atestado:'Atestado médico',abonada:'Falta justificada (abonada)',folga:'Folga / compensação de banco',ferias:'Férias',licenca:'Licença / afastamento'};
+  var OCABS={falta:1,atestado:1,abonada:1};
+  function cfg(){var c=state.cfg[0]||{};return{tol:c.tol==null?10:+c.tol,meta:c.meta==null?3:+c.meta,intv:c.intv==null?60:+c.intv}}
+
+  /* ---- horas ---- */
+  function toMin(s){if(!s)return null;var a=String(s).split(':');var h=+a[0],m=+a[1];return isNaN(h)||isNaN(m)?null:h*60+m}
+  function mmToStr(m){m=Math.round(m);return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
+  function hm(m){var s=m<0?'-':'';m=Math.abs(Math.round(m));return s+Math.floor(m/60)+'h'+String(m%60).padStart(2,'0')}
+  function hms(m){return m>0?'+'+hm(m):hm(m)}
+  function dowOf(d){return new Date(d+'T12:00:00Z').getUTCDay()}
+  function feriado(d){return by(state.fer,'d',d)}
+  function getReg(nome,d,create){
+    var r=null;for(var i=0;i<state.reg.length;i++){var x=state.reg[i];if(x.d===d&&x.nome===nome){r=x;break}}
+    if(!r&&create){r={id:VEX.uid(),d:d,nome:nome,e1:'',s1:'',e2:'',s2:'',oc:'',obs:''};state.reg.push(r)}
+    return r;
+  }
+  function worked(r){
+    if(!r)return{min:0,inc:false,any:false};
+    var e1=toMin(r.e1),s1=toMin(r.s1),e2=toMin(r.e2),s2=toMin(r.s2),any=!!(r.e1||r.s1||r.e2||r.s2);
+    if(!any)return{min:0,inc:false,any:false};
+    if(e1!=null&&s1!=null&&e2!=null&&s2!=null){return{min:Math.max(0,(s1-e1)+(s2-e2)),inc:s1<e1||s2<e2,any:true}}
+    if(e1!=null&&s2!=null&&s1==null&&e2==null){return{min:Math.max(0,s2-e1-cfg().intv),inc:s2<=e1,any:true}}
+    return{min:0,inc:true,any:true};
+  }
+  /* ---- apuração do dia ---- */
+  function dia(p,d){
+    var c=cfg(),dow=dowOf(d),hol=feriado(d),prev=hol||dow===0?0:(dow===6?+p.jsab||0:+p.jdu||0);
+    var o={d:d,dow:dow,hol:hol,prev:prev,emp:0,trab:0,saldo:0,abs:0,atraso:0,x50:0,x100:0,st:'',cls:'mut',oc:'',inc:false,sem:false};
+    if(p.adm&&d<p.adm){o.st='Antes da admissão';return o}
+    var r=getReg(p.nome,d,false),oc=r&&r.oc||'';o.oc=oc;
+    if(oc==='ferias'||oc==='licenca'){o.st=OC[oc];return o}
+    if(OCABS[oc]){o.emp=prev;o.abs=prev;o.st=OC[oc];o.cls=oc==='falta'?'red':'warn';return o}
+    if(oc==='folga'){o.saldo=-prev;o.st=OC.folga;o.cls='mut';return o}
+    var w=worked(r);
+    if(w.any){
+      if(w.inc){o.inc=true;o.st='Horários incompletos';o.cls='warn';return o}
+      o.emp=prev;o.trab=w.min;var net=w.min-prev;
+      if(prev>0&&Math.abs(net)<=c.tol)net=0;
+      o.saldo=net;
+      if(net>0){if(dow===0||hol)o.x100=net;else o.x50=net;o.st=prev>0?'Hora extra':(hol?'Trabalho em feriado':dow===0?'Trabalho no domingo':'Trabalho no sábado');o.cls='ok'}
+      else if(net<0){o.atraso=-net;o.st='Atraso / saída antecipada';o.cls='warn'}
+      else{o.st='Completo';o.cls='ok'}
+      return o;
+    }
+    if(prev>0){if(d<=today()){o.sem=true;o.st='Sem registro';o.cls='red'}else{o.st='';}}
+    else o.st=hol?'Feriado: '+hol.nome:(dow===0?'Domingo':'Sábado');
+    return o;
+  }
+  function diasDoMes(ym){var a=ym.split('-'),n=new Date(Date.UTC(+a[0],+a[1],0)).getUTCDate(),l=[];for(var i=1;i<=n;i++)l.push(ym+'-'+String(i).padStart(2,'0'));return l}
+  function resumo(p,ym){
+    var s={prev:0,emp:0,trab:0,abs:0,saldo:0,atraso:0,x50:0,x100:0,falta:0,atest:0,abon:0,folga:0,ferias:0,sem:0,inc:0};
+    diasDoMes(ym).forEach(function(d){var x=dia(p,d);
+      s.prev+=x.prev;s.emp+=x.emp;s.trab+=x.trab;s.abs+=x.abs;s.saldo+=x.saldo;s.atraso+=x.atraso;s.x50+=x.x50;s.x100+=x.x100;
+      if(x.oc==='falta'&&x.abs>=0&&!x.sem)s.falta+=x.prev>0?1:0;
+      if(x.oc==='atestado')s.atest+=x.prev>0?1:0;
+      if(x.oc==='abonada')s.abon+=x.prev>0?1:0;
+      if(x.oc==='folga')s.folga++;if(x.oc==='ferias'||x.oc==='licenca')s.ferias++;
+      if(x.sem)s.sem++;if(x.inc)s.inc++;});
+    s.taxa=s.emp>0?s.abs/s.emp*100:null;return s;
+  }
+  function ativos(d){return state.pes.filter(function(p){return p.ativo!==false&&!(p.adm&&d&&d<p.adm)})}
+  function pesOpts(sel,all){return state.pes.map(function(p,i){return '<option value="'+i+'"'+(i===sel?' selected':'')+'>'+esc(p.nome)+(p.ativo===false?' (inativo)':'')+'</option>'}).join('')}
+
+  /* ---- ponto do dia ---- */
+  function ocOpts(v){return '<option value="">—</option>'+Object.keys(OC).map(function(k){return '<option value="'+k+'"'+(k===v?' selected':'')+'>'+OC[k]+'</option>'}).join('')}
+  function tag(x){return x.st?'<span class="tag '+x.cls+'">'+esc(x.st)+'</span>':''}
+  function cells(i,p,d){var x=dia(p,d);
+    $('w-'+i).textContent=x.trab?hm(x.trab):'—';
+    $('s-'+i).textContent=(x.trab||x.oc==='folga')&&x.saldo!==0?hms(x.saldo):(x.trab?'0h00':'—');
+    $('t-'+i).innerHTML=tag(x);
+  }
+  function renderDia(){
+    var d=$('d-d').value||today(),l=ativos(d),dow=dowOf(d),h=feriado(d);
+    $('d-info').textContent=DIAS[dow]+', '+fmt(d)+(h?' · Feriado: '+h.nome:'')+(dow===0?' · Domingo':'')+(dow===6&&!h?' · Sábado':'');
+    $('d-rows').innerHTML=l.length?l.map(function(p){var i=state.pes.indexOf(p),r=getReg(p.nome,d,false)||{};
+      function tin(f){return '<td><input type="time" data-i="'+i+'" data-f="'+f+'" value="'+esc(r[f]||'')+'" style="min-width:104px"></td>'}
+      return '<tr><td><b>'+esc(p.nome)+'</b></td>'+tin('e1')+tin('s1')+tin('e2')+tin('s2')+
+        '<td><select data-i="'+i+'" data-f="oc" style="min-width:150px">'+ocOpts(r.oc||'')+'</select></td>'+
+        '<td><input data-i="'+i+'" data-f="obs" value="'+esc(r.obs||'')+'" style="min-width:140px"></td>'+
+        '<td class="n" id="w-'+i+'"></td><td class="n" id="s-'+i+'"></td><td id="t-'+i+'"></td>'+
+        '<td><button class="btn sm sec" type="button" data-now="'+i+'">Agora</button></td></tr>'}).join('')
+      :'<tr><td colspan="11" class="empty">Nenhum colaborador ativo. Cadastre na aba Cadastro.</td></tr>';
+    l.forEach(function(p){cells(state.pes.indexOf(p),p,d)});
+  }
+  function setField(i,f,v){var p=state.pes[i],d=$('d-d').value;
+    var r=getReg(p.nome,d,false);
+    if(!r){if(!v)return;r=getReg(p.nome,d,true)}
+    r[f]=v;save();cells(i,p,d);
+  }
+  $('d-rows').addEventListener('change',function(e){var t=e.target,i=t.getAttribute('data-i');if(i==null)return;setField(+i,t.getAttribute('data-f'),t.value)});
+  $('d-rows').addEventListener('click',function(e){var i=e.target.getAttribute('data-now');if(i==null)return;
+    var row=e.target.closest('tr'),f=['e1','s1','e2','s2'],h=nowParts().h;
+    for(var k=0;k<4;k++){var inp=row.querySelector('[data-f="'+f[k]+'"]');if(!inp.value){inp.value=h;setField(+i,f[k],h);return}}
+    $('d-msg').textContent='Os quatro horários já estão preenchidos.';setTimeout(function(){$('d-msg').textContent=''},3000)});
+  function moveDia(n){var d=new Date($('d-d').value+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);$('d-d').value=d.toISOString().slice(0,10);renderDia()}
+  $('d-ant').addEventListener('click',function(){moveDia(-1)});
+  $('d-prox').addEventListener('click',function(){moveDia(1)});
+  $('d-hoje').addEventListener('click',function(){$('d-d').value=today();renderDia()});
+  $('d-d').addEventListener('change',renderDia);
+
+  /* ---- espelho ---- */
+  function espelhoDados(){var i=+$('e-p').value,p=state.pes[i],ym=$('e-m').value;if(!p||!ym)return null;
+    return{p:p,ym:ym,s:resumo(p,ym),dias:diasDoMes(ym).map(function(d){return{d:d,x:dia(p,d),r:getReg(p.nome,d,false)||{}}})}}
+  function ocTxt(x){return x.st||''}
+  function renderEsp(){
+    var cur=$('e-p').value;$('e-p').innerHTML=pesOpts(cur===''?0:+cur);
+    var e=espelhoDados();if(!e){$('e-rows').innerHTML='';$('e-tally').innerHTML='';return}
+    var s=e.s;
+    $('e-tally').innerHTML='<div><b>'+hm(s.emp)+'</b>previsto</div><div><b>'+hm(s.trab)+'</b>trabalhado</div><div><b>'+(s.falta+s.atest+s.abon)+'</b>faltas e atestados</div><div><b>'+hm(s.x50+s.x100)+'</b>extras</div><div><b>'+hms(s.saldo)+'</b>saldo</div><div><b>'+(s.taxa==null?'—':nf(s.taxa,1)+'%')+'</b>absenteísmo</div>'+(s.sem?'<div style="border-color:var(--warn)"><b>'+s.sem+'</b>sem registro</div>':'');
+    $('e-rows').innerHTML=e.dias.map(function(o){var x=o.x,r=o.r,fim=x.dow===0||x.dow===6||x.hol;
+      return '<tr'+(fim?' style="background:var(--soft)"':'')+'><td>'+fmt(o.d)+'</td><td>'+DIAS[x.dow]+'</td><td>'+esc(r.e1||'')+'</td><td>'+esc(r.s1||'')+'</td><td>'+esc(r.e2||'')+'</td><td>'+esc(r.s2||'')+'</td><td>'+tag(x)+'</td><td class="n">'+(x.trab?hm(x.trab):'')+'</td><td class="n">'+(x.trab&&x.saldo?hms(x.saldo):'')+'</td><td>'+esc(r.obs||'')+'</td></tr>'}).join('');
+  }
+  $('e-p').addEventListener('change',renderEsp);$('e-m').addEventListener('change',renderEsp);
+  var DCSS='@page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{font-family:Barlow,Arial,sans-serif;color:#26282d;font-size:11.5px;line-height:1.4;margin:0 auto;padding:20px;max-width:1000px;background:#fff}'+
+    '.top{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:4px solid #d8392f;padding-bottom:10px;margin-bottom:14px}h1{font-family:Chakra Petch,Arial Narrow,sans-serif;font-size:19px;margin:0;color:#858a8f;letter-spacing:.02em}'+
+    '.meta{font-size:11px;color:#6b6e75;text-align:right}h2{font-family:Chakra Petch,Arial Narrow,sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#858a8f;margin:14px 0 6px}'+
+    'table{border-collapse:collapse;width:100%}th{font-size:10px;text-transform:uppercase;letter-spacing:.05em;text-align:left;padding:4px 6px;border:1px solid #d4d5d9}td{padding:3px 6px;border:1px solid #d4d5d9}.n{text-align:right}.we td{background:#f1f2f4}'+
+    '.id td:first-child{width:22%;background:#e4e4e4;font-weight:600}.sign{display:flex;gap:40px;margin-top:48px}.sign div{flex:1;border-top:1px solid #26282d;padding-top:4px;text-align:center;font-size:12px;color:#6b6e75}'+
+    '.bar{margin-bottom:16px}.bar button{font:600 13px Arial,sans-serif;padding:9px 16px;background:#d8392f;color:#fff;border:0;border-radius:3px;cursor:pointer}@media print{.bar{display:none}body{padding:0}}';
+  function wrap(titulo,corpo,logo){var n=nowParts();
+    return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(titulo)+'</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Barlow:wght@400;500;600&display=swap"><style>'+DCSS+'</style></head><body>'+
+      '<div class="bar"><button onclick="window.print()">Imprimir ou salvar em PDF</button></div>'+
+      '<div class="top">'+logo+'<div><h1>'+esc(titulo.toUpperCase())+'</h1><div class="meta">VEX Soluções Automotivas<br>Emitido em '+fmt(n.d)+' às '+n.h+'</div></div></div>'+corpo+'</body></html>';}
+  function logoSvg(){var s=document.querySelector('svg.logo'),sym=document.getElementById('vex');if(!s||!sym)return '';
+    return '<svg viewBox="5 30 1135 392" overflow="visible" width="190" role="img" aria-label="VEX Soluções Automotivas">'+sym.innerHTML.replace(/style="fill:var\(--logo\)"/g,'fill="#858a8f"').replace(/style="fill:var\(--red\)"/g,'fill="#d8392f"')+'</svg>'}
+  function mesTxt(ym){var a=ym.split('-');return ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][+a[1]-1]+' de '+a[0]}
+  function espDoc(e){
+    var p=e.p,s=e.s;
+    var linhas=e.dias.map(function(o){var x=o.x,r=o.r,fim=x.dow===0||x.dow===6||x.hol;
+      return '<tr'+(fim?' class="we"':'')+'><td>'+fmt(o.d).slice(0,5)+'</td><td>'+DIAS[x.dow]+'</td><td>'+esc(r.e1||'')+'</td><td>'+esc(r.s1||'')+'</td><td>'+esc(r.e2||'')+'</td><td>'+esc(r.s2||'')+'</td><td>'+esc(ocTxt(x))+'</td><td class="n">'+(x.trab?hm(x.trab):'')+'</td><td class="n">'+(x.trab&&x.saldo?hms(x.saldo):'')+'</td><td>'+esc(r.obs||'')+'</td></tr>'}).join('');
+    return wrap('Espelho de ponto',
+      '<table class="id"><tr><td>Colaborador</td><td>'+esc(p.nome)+'</td><td style="width:14%;background:#e4e4e4;font-weight:600">Cargo</td><td>'+esc(p.func||'—')+'</td></tr><tr><td>Matrícula</td><td>'+esc(p.mat||'—')+'</td><td style="background:#e4e4e4;font-weight:600">Período</td><td>'+esc(mesTxt(e.ym))+'</td></tr></table>'+
+      '<h2>Registros</h2><table><thead><tr><th>Data</th><th>Dia</th><th>Entrada</th><th>Saída almoço</th><th>Volta almoço</th><th>Saída</th><th>Ocorrência</th><th class="n">Trabalhado</th><th class="n">Saldo</th><th>Observação</th></tr></thead><tbody>'+linhas+'</tbody></table>'+
+      '<h2>Resumo do mês</h2><table class="id"><tr><td>Horas previstas</td><td>'+hm(s.emp)+'</td><td style="width:22%;background:#e4e4e4;font-weight:600">Horas trabalhadas</td><td>'+hm(s.trab)+'</td></tr>'+
+      '<tr><td>Faltas injustificadas</td><td>'+s.falta+'</td><td style="background:#e4e4e4;font-weight:600">Atestados / faltas abonadas</td><td>'+s.atest+' / '+s.abon+'</td></tr>'+
+      '<tr><td>Horas extras 50%</td><td>'+hm(s.x50)+'</td><td style="background:#e4e4e4;font-weight:600">Horas extras 100%</td><td>'+hm(s.x100)+'</td></tr>'+
+      '<tr><td>Atrasos / saídas antecipadas</td><td>'+hm(s.atraso)+'</td><td style="background:#e4e4e4;font-weight:600">Saldo do mês</td><td>'+hms(s.saldo)+'</td></tr></table>'+
+      '<p>Declaro que conferi os registros acima e que correspondem aos horários trabalhados no período.</p>'+
+      '<div class="sign"><div>'+esc(p.nome)+'<br>Colaborador</div><div>Responsável VEX Soluções Automotivas</div></div>',logoSvg());
+  }
+  $('e-doc').addEventListener('click',function(){var e=espelhoDados(),m=$('e-msg');if(!e){m.textContent='Selecione colaborador e mês.';return}
+    var fn='Espelho-Ponto-'+e.p.nome.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'-')+'-'+e.ym+'.html';
+    VEX.download(fn,espDoc(e),'text/html');m.style.color='var(--ok)';m.textContent='Documento salvo: '+fn+'. Abra, imprima e colha a assinatura.'});
+  function q(t){t=t==null?'':String(t);return /[;"\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t}
+  function csv(fn,rows){VEX.download(fn,'﻿'+rows.map(function(r){return r.map(q).join(';')}).join('\r\n'),'text/csv')}
+  $('e-csv').addEventListener('click',function(){var e=espelhoDados(),m=$('e-msg');if(!e){m.textContent='Selecione colaborador e mês.';return}
+    var rows=[['Data','Dia','Entrada','Saída almoço','Volta almoço','Saída','Ocorrência','Previsto (min)','Trabalhado (min)','Saldo (min)','Observação']];
+    e.dias.forEach(function(o){rows.push([fmt(o.d),DIAS[o.x.dow],o.r.e1||'',o.r.s1||'',o.r.e2||'',o.r.s2||'',ocTxt(o.x),o.x.prev,o.x.trab,o.x.saldo,o.r.obs||''])});
+    csv('Ponto-'+e.p.nome.replace(/\s+/g,'-')+'-'+e.ym+'.csv',rows);m.style.color='var(--ok)';m.textContent='Planilha salva.'});
+
+  /* ---- absenteísmo ---- */
+  function equipe(ym){var l=state.pes.filter(function(p){return p.ativo!==false||getResumoUsado(p,ym)}),t={prev:0,emp:0,abs:0,saldo:0,atraso:0,x:0,falta:0,atest:0,abon:0,sem:0,res:[]};
+    l.forEach(function(p){var s=resumo(p,ym);t.res.push({p:p,s:s});t.emp+=s.emp;t.abs+=s.abs;t.saldo+=s.saldo;t.atraso+=s.atraso;t.x+=s.x50+s.x100;t.falta+=s.falta;t.atest+=s.atest;t.abon+=s.abon;t.sem+=s.sem});
+    t.taxa=t.emp>0?t.abs/t.emp*100:null;return t}
+  function getResumoUsado(p,ym){return state.reg.some(function(r){return r.nome===p.nome&&r.d.slice(0,7)===ym})}
+  function bar(label,v,max,txt,red){return '<div style="display:grid;grid-template-columns:minmax(120px,220px) 1fr 90px;gap:10px;align-items:center;margin:6px 0"><span>'+esc(label)+'</span><div style="background:var(--soft);height:14px"><div style="height:14px;width:'+(max>0?Math.max(v/max*100,v>0?2:0):0)+'%;background:'+(red?'var(--red)':'var(--navy)')+'"></div></div><b style="font-family:var(--f-display)">'+txt+'</b></div>'}
+  function renderAbs(){
+    var ym=$('a-m').value||today().slice(0,7),t=equipe(ym),c=cfg();
+    var acima=t.taxa!=null&&t.taxa>c.meta;
+    $('a-tally').innerHTML='<div'+(acima?' style="border-color:var(--red)"':'')+'><b>'+(t.taxa==null?'—':nf(t.taxa,1)+'%')+'</b>absenteísmo (meta '+nf(c.meta,1)+'%)</div><div><b>'+t.falta+'</b>faltas</div><div><b>'+(t.atest+t.abon)+'</b>atestados e abonadas</div><div><b>'+hm(t.atraso)+'</b>atrasos</div><div><b>'+hm(t.x)+'</b>horas extras</div><div><b>'+hms(t.saldo)+'</b>saldo de horas</div>'+(t.sem?'<div style="border-color:var(--warn)"><b>'+t.sem+'</b>dias sem registro</div>':'');
+    $('a-rows').innerHTML=t.res.length?t.res.map(function(o){var s=o.s,ac=s.taxa!=null&&s.taxa>c.meta;
+      return '<tr><td><b>'+esc(o.p.nome)+'</b>'+(o.p.ativo===false?' <span class="tag mut">inativo</span>':'')+'</td><td class="n">'+s.falta+'</td><td class="n">'+(s.atest+s.abon)+'</td><td class="n">'+hm(s.abs)+'</td><td class="n">'+hm(s.atraso)+'</td><td class="n">'+hm(s.x50+s.x100)+'</td><td class="n">'+hms(s.saldo)+'</td><td class="n">'+(s.taxa==null?'—':nf(s.taxa,1)+'%')+'</td><td>'+(ac?'<span class="tag red">Acima da meta</span> ':'')+(s.sem?'<span class="tag warn">'+s.sem+' sem registro</span>':'')+(!ac&&!s.sem&&s.taxa!=null?'<span class="tag ok">Dentro da meta</span>':'')+'</td></tr>'}).join('')
+      :'<tr><td colspan="9" class="empty">Sem colaboradores.</td></tr>';
+    var cont={};Object.keys(OC).forEach(function(k){cont[k]=0});
+    t.res.forEach(function(o){diasDoMes(ym).forEach(function(d){var x=dia(o.p,d);if(x.oc&&OC[x.oc]&&(x.prev>0||x.oc==='ferias'||x.oc==='licenca'))cont[x.oc]++})});
+    var mx=Math.max.apply(null,Object.keys(cont).map(function(k){return cont[k]}));
+    $('a-oc').innerHTML=mx>0?Object.keys(OC).map(function(k){return bar(OC[k],cont[k],mx,cont[k]+' dia'+(cont[k]===1?'':'s'),k==='falta')}).join(''):'<p class="empty">Nenhuma ocorrência lançada no mês.</p>';
+    var meses=[];var a=ym.split('-'),y=+a[0],m=+a[1];for(var k=5;k>=0;k--){var mm=m-k,yy=y;while(mm<1){mm+=12;yy--}meses.push(yy+'-'+String(mm).padStart(2,'0'))}
+    var tr=meses.map(function(x){return{m:x,t:equipe(x).taxa}});
+    var mt=Math.max.apply(null,tr.map(function(z){return z.t||0}).concat([c.meta,1]));
+    $('a-trend').innerHTML=tr.map(function(z){var p=z.m.split('-');return bar(p[1]+'/'+p[0],z.t||0,mt,z.t==null?'—':nf(z.t,1)+'%',z.t!=null&&z.t>c.meta)}).join('')+'<p class="hint">Barras em vermelho estão acima da meta de '+nf(c.meta,1)+'%.</p>';
+  }
+  $('a-m').addEventListener('change',renderAbs);
+  $('a-csv').addEventListener('click',function(){var ym=$('a-m').value,t=equipe(ym);
+    var rows=[['Colaborador','Mês','Faltas','Atestados','Abonadas','Horas previstas (min)','Horas perdidas (min)','Atrasos (min)','Extras (min)','Saldo (min)','Dias sem registro','Absenteísmo (%)']];
+    t.res.forEach(function(o){var s=o.s;rows.push([o.p.nome,ym,s.falta,s.atest,s.abon,s.emp,s.abs,s.atraso,s.x50+s.x100,s.saldo,s.sem,s.taxa==null?'':nf(s.taxa,2)])});
+    csv('Absenteismo-VEX-'+ym+'.csv',rows)});
+
+  /* ---- cadastro ---- */
+  function renderCad(){
+    var c=cfg();$('c-tol').value=c.tol;$('c-meta').value=c.meta;$('c-int').value=c.intv;
+    $('p-rows').innerHTML=state.pes.map(function(p,i){return '<tr><td><b>'+esc(p.nome)+'</b></td>'+
+      '<td><input data-t="pes" data-i="'+i+'" data-f="func" value="'+esc(p.func||'')+'"></td><td><input data-t="pes" data-i="'+i+'" data-f="mat" value="'+esc(p.mat||'')+'"></td>'+
+      '<td><input type="date" data-t="pes" data-i="'+i+'" data-f="adm" value="'+esc(p.adm||'')+'"></td>'+
+      '<td><input type="time" data-t="pes" data-i="'+i+'" data-f="jdu" data-m="1" value="'+mmToStr(p.jdu||0)+'"></td><td><input type="time" data-t="pes" data-i="'+i+'" data-f="jsab" data-m="1" value="'+mmToStr(p.jsab||0)+'"></td>'+
+      '<td><input type="checkbox" data-t="pes" data-i="'+i+'" data-f="ativo"'+(p.ativo!==false?' checked':'')+' style="width:auto;min-width:0"></td>'+
+      '<td><button class="x" data-rm="'+i+'" aria-label="Apagar '+esc(p.nome)+'">×</button></td></tr>'}).join('')||'<tr><td colspan="8" class="empty">Nenhum colaborador.</td></tr>';
+    $('f-rows').innerHTML=state.fer.slice().sort(function(a,b){return a.d<b.d?-1:1}).map(function(f){var i=state.fer.indexOf(f);return '<tr><td>'+fmt(f.d)+'</td><td>'+esc(f.nome)+'</td><td><button class="x" data-rf="'+i+'" aria-label="Apagar feriado">×</button></td></tr>'}).join('')||'<tr><td colspan="3" class="empty">Nenhum feriado.</td></tr>';
+  }
+  function setCfg(f,v){if(!state.cfg[0])state.cfg.push({tol:10,meta:3,intv:60});state.cfg[0][f]=v;save();renderAll()}
+  $('c-tol').addEventListener('change',function(){setCfg('tol',Math.max(0,parseFloat(this.value)||0))});
+  $('c-meta').addEventListener('change',function(){setCfg('meta',Math.max(0,parseFloat(this.value)||0))});
+  $('c-int').addEventListener('change',function(){setCfg('intv',Math.max(0,parseFloat(this.value)||0))});
+  $('p-rows').addEventListener('change',function(e){var t=e.target;if(t.getAttribute('data-t')!=='pes')return;var p=state.pes[+t.getAttribute('data-i')],f=t.getAttribute('data-f');
+    p[f]=f==='ativo'?t.checked:t.getAttribute('data-m')?(toMin(t.value)||0):t.value.trim?t.value.trim():t.value;save();renderAll()});
+  $('cad').addEventListener('click',function(e){
+    var i=e.target.getAttribute('data-rm');if(i!=null){var p=state.pes[+i];
+      if(state.reg.some(function(r){return r.nome===p.nome})){$('p-msg').textContent='“'+p.nome+'” tem registros de ponto. Para tirá-lo das telas, desmarque “Ativo”.';return}
+      state.pes.splice(+i,1);$('p-msg').textContent='';save();renderAll();return}
+    var f=e.target.getAttribute('data-rf');if(f!=null){state.fer.splice(+f,1);save();renderAll()}});
+  $('f-p').addEventListener('submit',function(e){e.preventDefault();var n=$('p-no').value.trim();if(!n)return;
+    if(by(state.pes,'nome',n)){$('p-msg').textContent='“'+n+'” já está cadastrado.';return}
+    state.pes.push({nome:n,cargo:$('p-ca').value.trim(),mat:$('p-ma').value.trim(),adm:$('p-ad').value,jdu:toMin($('p-ju').value)||0,jsab:toMin($('p-js').value)||0,ativo:true});
+    $('p-msg').textContent='';$('p-no').value='';$('p-ma').value='';$('p-ad').value='';save();renderAll()});
+  $('f-f').addEventListener('submit',function(e){e.preventDefault();var d=$('f-d').value,n=$('f-n').value.trim();if(!d||!n)return;
+    if(by(state.fer,'d',d)){$('f-msg').textContent='Já existe um feriado nessa data.';return}
+    state.fer.push({d:d,nome:n});$('f-msg').textContent='';$('f-n').value='';$('f-d').value='';save();renderAll()});
+
+  function renderAll(){var ae=document.activeElement;
+    if(ae&&/^(INPUT|SELECT)$/.test(ae.tagName)&&ae.closest('#d-rows')&&!ae._stale){}
+    renderDia();renderEsp();renderAbs();renderCad()}
+  $('d-d').value=today();$('e-m').value=today().slice(0,7);$('a-m').value=today().slice(0,7);
+  document.querySelector('nav').addEventListener('click',function(e){var t=e.target.getAttribute('data-tab');if(!t)return;
+    ['dia','esp','abs','cad'].forEach(function(k){$(k).hidden=k!==t;$('t-'+k).setAttribute('aria-selected',k===t?'true':'false')});
+    renderAll()});
+  VEX.onRemote(renderAll);
+  renderAll();
+})();
+</script>
+</body></html>

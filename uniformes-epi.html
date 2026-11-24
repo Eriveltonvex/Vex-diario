@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Controle de Uniformes e EPI · VEX</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=Montserrat:wght@500&display=swap">
+<style>
+/* Layout: cabeçalho claro com a marca, abas por tarefa (Registro, Estoque, Cadastro, Ficha), tabelas de trabalho como peça central. */
+:root{
+  --navy:#858a8f;--strong:#858a8f; --red:#d8392f; --paper:#fbfbfc; --ink:#26282d; --line:#e3e4e7;
+  --surface:#ffffff; --muted:#6b6e75; --ok:#1f7a4d; --warn:#b26a00; --soft:#f1f2f4;
+  --band:#ffffff; --logo:#858a8f;
+  --f-display:'Chakra Petch','Arial Narrow',sans-serif; --f-body:'Barlow',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.band{background:var(--band);color:var(--strong);padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band-in{max-width:1100px;margin:0 auto;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.logo{overflow:visible;width:230px;max-width:60vw;height:auto;display:block}
+.band h1{font:600 22px/1.15 var(--f-display);margin:0;letter-spacing:.02em;text-wrap:balance}
+.band p{margin:4px 0 0;color:#858a8f;font-size:13px}
+.stripe{height:5px;background:var(--red)}
+main{max-width:1100px;margin:0 auto;padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+nav button{font:600 14px var(--f-display);letter-spacing:.03em;padding:9px 16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;border-radius:3px}
+nav button[aria-selected="true"]{background:var(--surface);color:var(--strong);border-color:var(--navy);box-shadow:inset 0 -3px 0 var(--red)}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+h2{font:600 18px var(--f-display);margin:0 0 12px;letter-spacing:.02em}
+.panel{background:var(--surface);border:1px solid var(--line);padding:16px;margin-bottom:18px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;min-width:0}
+input,select{font:400 15px var(--f-body);padding:8px 9px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:3px;min-width:0;width:100%}
+td input{padding:6px 7px;font-size:14px;min-width:90px}
+.btn{font:600 14px var(--f-display);padding:10px 16px;background:var(--red);color:#fff;border:0;border-radius:3px;cursor:pointer;letter-spacing:.03em}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;font-variant-numeric:tabular-nums}
+th{font:600 12px var(--f-display);text-transform:uppercase;letter-spacing:.07em;text-align:left;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--navy);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n,th.n{text-align:right}
+.tag{display:inline-block;font:600 11px var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border:1px solid currentColor;border-radius:2px}
+.tag.epi{color:var(--red)} .tag.uni{color:var(--muted)} .tag.ok{color:var(--ok)} .tag.warn{color:var(--warn)} .tag.red{color:var(--red)} .tag.mut{color:var(--muted)}
+.tally div.st{border-left-color:var(--ok)} .tally div.st.low{border-left-color:var(--warn)} .tally div.st.zero{border-left-color:var(--red)}
+.sig{display:inline-flex;gap:6px;align-items:center;font-size:13px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:500;color:inherit;flex-direction:row}
+.sig input{width:auto}
+.ok{color:var(--ok);font-weight:600} .pend{color:var(--warn);font-weight:600}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 8px}
+.hint{color:var(--muted);font-size:13px;margin:8px 0 0}
+.msg{color:var(--warn);font-size:13px;margin:8px 0 0;min-height:1em}
+.tally{display:flex;flex-wrap:wrap;gap:10px}
+.tally div{background:var(--soft);padding:8px 12px;border-left:3px solid var(--red);font-size:14px}
+.tally b{font-family:var(--f-display);font-size:17px;margin-right:4px}
+.sheet{background:var(--surface);border:1px solid var(--line);padding:22px;max-width:860px}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:var(--band);color:var(--strong);padding:14px 16px;margin:-22px -22px 18px;border-bottom:3px solid var(--red)}
+.sheet-head .logo{width:170px}
+.sheet-head .meta{font:500 12px var(--f-display);text-align:right;color:#858a8f;letter-spacing:.05em}
+.sheet h3{font:600 20px var(--f-display);margin:0 0 14px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.termo{font-size:13.5px;color:var(--muted);border-left:3px solid var(--red);padding:4px 0 4px 12px;margin:16px 0}
+.signs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:34px;margin-top:44px}
+.signs div{border-top:1px solid var(--ink);padding-top:5px;font-size:12px;color:var(--muted);text-align:center}
+.blank{height:22px;border-bottom:1px solid var(--line)}
+.empty{color:var(--muted);padding:14px 4px}
+@media (max-width:520px){.band h1{font-size:19px}.sheet{padding:16px}.sheet-head{margin:-16px -16px 16px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+body{margin:0}</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="vex" viewBox="5 30 1135 392" overflow="visible"><g style="fill:var(--logo)"><polygon points="51,39 116,40 108,218 38,288"/><polygon points="402.5,117.5 482.5,36.5 827.5,36.5 900,107.5 852.5,156 752.5,62.5 750,107.5 475,107.5 475,254 747.5,254 677.5,326 399,326"/><polygon points="505,151 777.5,151 777.5,214 505,214"/><polygon points="997.5,40 1105,40 832.5,326 722.5,326"/><polygon points="982.5,202.5 932.5,252.5 987.5,329 1112.5,329"/><text x="29" y="411" font-family="Montserrat,Barlow,Arial,sans-serif" font-weight="500" font-size="56" textLength="1089" lengthAdjust="spacing">SOLUÇÕES AUTOMOTIVAS</text></g><g fill="#d8392f"><polygon points="43,326 78,326 363,38 328,38"/><polygon points="134,326 166,326 451,38 419,38"/><polygon points="306.7,93 362.7,107 362.7,113 306.7,99"/><polygon points="217.6,183 273.6,197 273.6,203 217.6,189"/><polygon points="128.5,273 184.5,287 184.5,293 128.5,279"/></g></symbol>
+</svg>
+
+<header>
+  <div class="band"><div class="band-in">
+    <svg class="logo" viewBox="5 30 1135 392" overflow="visible" role="img" aria-label="VEX Soluções Automotivas"><use href="#vex"/></svg>
+    <div>
+      <h1>Controle de Uniformes e EPI</h1>
+      <p>VEX Soluções Automotivas · Rev. 00 · Outubro de 2026</p>
+    </div>
+  </div></div>
+  <div class="stripe"></div>
+</header>
+
+<main>
+  <nav role="tablist" aria-label="Seções">
+    <button role="tab" id="t-reg" aria-selected="true" data-tab="reg">Registro de entregas</button>
+    <button role="tab" id="t-est" aria-selected="false" data-tab="est">Estoque</button>
+    <button role="tab" id="t-cad" aria-selected="false" data-tab="cad">Cadastro</button>
+    <button role="tab" id="t-fic" aria-selected="false" data-tab="fic">Ficha individual</button>
+  </nav>
+
+  <section id="reg">
+    <div class="panel">
+      <h2>Nova retirada</h2>
+      <form class="form" id="f-add">
+        <label for="a-data">Data<input type="date" id="a-data" required></label>
+        <label for="a-nome">Colaborador<select id="a-nome" required></select></label>
+        <label for="a-mot">Motivo<select id="a-mot"><option>Admissão</option><option>Troca por desgaste</option><option>Reposição (perda)</option><option>Novo item</option></select></label>
+      </form>
+      <div class="form" id="f-lin" style="margin-top:12px">
+        <label for="a-item">Item<select id="a-item"></select></label>
+        <label for="a-tam">Tamanho<input id="a-tam" placeholder="M, G, 42…"></label>
+        <label for="a-qtd">Qtd<input type="number" id="a-qtd" min="1" value="1"></label>
+        <button class="btn" type="button" id="a-add" style="background:var(--navy)">Adicionar item</button>
+      </div>
+      <div class="tablewrap" style="margin-top:12px"><table style="min-width:520px">
+        <thead><tr><th>Itens desta retirada</th><th>Tam.</th><th class="n">Qtd</th><th></th></tr></thead>
+        <tbody id="cart"></tbody>
+      </table></div>
+      <div class="form" style="margin-top:12px">
+        <button class="btn" type="button" id="a-reg">Registrar retirada</button>
+        <button class="btn" type="button" id="a-lim" style="background:var(--navy)">Limpar itens</button>
+      </div>
+      <p class="hint" id="a-hint">Escolha o colaborador, adicione todos os itens que ele está levando e clique em “Registrar retirada”. Cada retirada recebe um número e gera um único termo para assinar.</p>
+    </div>
+
+    <div class="panel">
+      <h2>Retiradas registradas</h2>
+      <div class="form" style="margin-bottom:12px">
+        <label for="r-fil">Mostrar<select id="r-fil"><option value="">Todas as retiradas</option><option value="p">Só pendentes de assinatura</option></select></label>
+      </div>
+      <div class="tablewrap"><table style="min-width:820px">
+        <thead><tr><th>Nº</th><th>Data</th><th>Colaborador</th><th>Itens</th><th>Motivo</th><th>Recibo</th><th>Documento</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section id="est" hidden>
+    <div class="panel">
+      <h2>Estoque</h2>
+      <div class="form" style="margin-bottom:12px">
+        <label for="x-tipo">Mostrar<select id="x-tipo"><option value="">Todos os itens</option><option value="uni">Uniformes</option><option value="epi">EPI</option></select></label>
+      </div>
+      <div class="tablewrap"><table style="min-width:680px">
+        <thead><tr><th>Item</th><th>Tipo</th><th class="n">Entrou</th><th class="n">Saiu</th><th class="n">Saldo</th><th class="n">Mínimo</th><th>Situação</th></tr></thead>
+        <tbody id="x-rows"></tbody>
+      </table></div>
+      <p class="hint">Entrou = entradas lançadas no Cadastro. Saiu = entregas registradas. Saldo = entrou menos saiu. Para lançar uma entrada ou ajustar o mínimo, use a aba Cadastro.</p>
+    </div>
+  </section>
+
+  <section id="cad" hidden>
+    <div class="panel">
+      <h2>Colaboradores</h2>
+      <form class="form" id="f-pes">
+        <label for="p-nome">Nome<input id="p-nome" required></label>
+        <label for="p-func">Função<input id="p-func" placeholder="Ex.: Mecânico"></label>
+        <label for="p-mat">Matrícula<input id="p-mat"></label>
+        <label for="p-adm">Admissão<input type="date" id="p-adm"></label>
+        <label for="p-cam">Camisa / calça<input id="p-cam" placeholder="M, 42…"></label>
+        <label for="p-calc">Calçado<input id="p-calc" placeholder="40"></label>
+        <button class="btn" type="submit">Cadastrar</button>
+      </form>
+      <div class="tablewrap" style="margin-top:14px"><table>
+        <thead><tr><th>Nome</th><th>Função</th><th>Matrícula</th><th>Admissão</th><th>Camisa / calça</th><th>Calçado</th><th></th></tr></thead>
+        <tbody id="p-rows"></tbody>
+      </table></div>
+      <p class="msg" id="p-msg" role="status"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Itens (uniformes e EPI)</h2>
+      <form class="form" id="f-ite">
+        <label for="i-nome">Item<input id="i-nome" required placeholder="Ex.: Capacete"></label>
+        <label for="i-tipo">Tipo<select id="i-tipo"><option value="epi">EPI</option><option value="uni">Uniforme</option></select></label>
+        <label for="i-ca">CA (só EPI)<input id="i-ca" placeholder="Nº do CA"></label>
+        <label for="i-v">Troca sugerida<input id="i-v" placeholder="6 meses"></label>
+        <label for="i-est">Estoque inicial<input type="number" id="i-est" min="0" value="0"></label>
+        <label for="i-min">Estoque mínimo<input type="number" id="i-min" min="0" value="0"></label>
+        <button class="btn" type="submit">Cadastrar</button>
+      </form>
+      <div class="tablewrap" style="margin-top:14px"><table>
+        <thead><tr><th>Item</th><th>Tipo</th><th>CA</th><th>Troca sugerida</th><th class="n">Estoque</th><th>Mínimo</th><th>Situação</th><th></th></tr></thead>
+        <tbody id="c-rows"></tbody>
+      </table></div>
+      <p class="hint">Preencha o CA conforme a embalagem do EPI comprado. A troca sugerida é só um ponto de partida, ajuste conforme o uso na oficina. O estoque baixa sozinho a cada entrega registrada e sobe a cada entrada.</p>
+      <p class="msg" id="i-msg" role="status"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Entrada de estoque</h2>
+      <form class="form" id="f-ent">
+        <label for="e-data">Data<input type="date" id="e-data" required></label>
+        <label for="e-item">Item<select id="e-item" required></select></label>
+        <label for="e-qtd">Quantidade recebida<input type="number" id="e-qtd" min="1" required></label>
+        <label for="e-obs">Observação<input id="e-obs" placeholder="Ex.: NF 1234"></label>
+        <button class="btn" type="submit">Registrar entrada</button>
+      </form>
+      <div class="tablewrap" style="margin-top:14px"><table style="min-width:560px">
+        <thead><tr><th>Data</th><th>Item</th><th class="n">Qtd</th><th>Observação</th><th></th></tr></thead>
+        <tbody id="e-rows"></tbody>
+      </table></div>
+      <p class="msg" id="e-msg" role="status"></p>
+    </div>
+  </section>
+
+  <section id="fic" hidden>
+    <div class="panel">
+      <div class="form">
+        <label for="s-nome">Colaborador<select id="s-nome"></select></label>
+        <button class="btn" type="button" id="s-gerar">Gerar documento para assinar</button>
+      </div>
+      <p class="hint">Gera o termo com todas as entregas do colaborador. Abra o arquivo salvo, imprima, colha a assinatura e arquive.</p>
+      <p class="msg" id="s-msg" role="status"></p>
+    </div>
+    <div class="sheet">
+      <div class="sheet-head">
+        <svg class="logo" viewBox="5 30 1135 392" overflow="visible" role="img" aria-label="VEX Soluções Automotivas"><use href="#vex"/></svg>
+        <div class="meta">VEX SOLUÇÕES AUTOMOTIVAS<br>FICHA DE ENTREGA DE UNIFORME E EPI</div>
+      </div>
+      <h3 id="s-titulo">Colaborador</h3>
+      <div class="fields">
+        <div><label>Função</label><div id="s-func">—</div></div>
+        <div><label>Admissão</label><div id="s-adm">—</div></div>
+        <div><label>Matrícula</label><div id="s-mat">—</div></div>
+      </div>
+      <div class="tablewrap"><table style="min-width:620px">
+        <thead><tr><th>Data</th><th>Item</th><th>Tam.</th><th class="n">Qtd</th><th>CA</th><th>Assinatura</th></tr></thead>
+        <tbody id="s-rows"></tbody>
+      </table></div>
+      <p class="termo">Declaro ter recebido gratuitamente os itens acima. Comprometo-me a usá-los apenas para a finalidade a que se destinam, conservá-los, comunicar qualquer dano ou extravio e devolvê-los quando solicitado ou ao término do contrato. Estou ciente de que o EPI é de uso obrigatório (NR-6).</p>
+      <div class="signs"><div>Colaborador</div><div>Responsável VEX</div></div>
+    </div>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="vex.js"></script>
+<script>
+(async function(){
+  var ITEMS=[];
+  function add(n,t,v,tam){ITEMS.push({n:n,t:t,ca:'',v:v,min:0,tam:tam||''});}
+  ['M','G','GG','XG'].forEach(function(z){add('Calça operacional - '+z,'uni','6 meses',z);});
+  ['M','G','GG','XG'].forEach(function(z){add('Camisa operacional - '+z,'uni','6 meses',z);});
+  ['M','G','GG','XG'].forEach(function(z){add('Camisa administrativa gola cinza - '+z,'uni','6 meses',z);});
+  for(var n=38;n<=44;n++)add('Bota de segurança - '+n,'epi','6 meses',String(n));
+  add('Óculos de segurança','epi','Por desgaste');
+  add('Protetor auricular tipo plugue','epi','Por desgaste');
+  add('Capacete de segurança tipo casquete','epi','Por desgaste');
+  add('Cinto de segurança tipo paraquedista','epi','Por desgaste');
+  add('Talabarte','epi','Por desgaste');
+  add('Luva tátil multitato','epi','Por desgaste');
+  var state={
+    items:ITEMS,
+    people:['Marcelo Thimotheo','Gabriel Peters','William Otero','Paulo Índio','Edson Brito','Paulo José','Eduardo Lima'].map(function(x){return{nome:x,func:'Mecânico',mat:'',adm:'',cam:'',calc:''}}),
+    rows:[],
+    entradas:[]
+  };
+  [['Calça operacional - G',12],['Calça operacional - GG',6],['Camisa operacional - GG',2],['Camisa operacional - G',16],['Camisa administrativa gola cinza - G',2]].forEach(function(x){state.entradas.push({d:'2026-11-07',item:x[0],qtd:x[1],obs:'Saldo inicial'})});
+  [['Paulo Índio','Calça operacional - G','Camisa operacional - GG','G','GG',3],['Gabriel Peters','Calça operacional - G','Camisa operacional - M','G','M',2],['Marcelo Thimotheo','Calça operacional - GG','Camisa operacional - GG','GG','GG',1]].forEach(function(x){
+    state.rows.push({ret:x[5],d:'2026-11-07',nome:x[0],item:x[1],tam:x[3],qtd:2,mot:'Admissão',ok:false});
+    state.rows.push({ret:x[5],d:'2026-11-07',nome:x[0],item:x[2],tam:x[4],qtd:2,mot:'Admissão',ok:false});});
+  state=await VEX.boot('epi',{colls:{items:'asc',people:'asc',rows:'desc',entradas:'asc'},link:{people:{m:'cad',c:'pessoas'}},seed:state});
+  VEX.central(['f-pes']);
+  (function(){var map={},n=0;state.rows.forEach(function(r){if(r.ret)n=Math.max(n,r.ret)});
+    for(var i=state.rows.length-1;i>=0;i--){var r=state.rows[i];if(r.ret)continue;var k=r.d+'|'+r.nome+'|'+r.mot;if(!map[k])map[k]=++n;r.ret=map[k];}})();
+  state.items.forEach(function(c){if(c.min==null)c.min=0;});
+  function save(){VEX.save();}
+  function $(i){return document.getElementById(i)}
+  function esc(t){var d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}
+  function fmt(d){if(!d)return'—';var a=d.split('-');return a[2]+'/'+a[1]+'/'+a[0]}
+  function item(n){for(var i=0;i<state.items.length;i++)if(state.items[i].n===n)return state.items[i];return{n:n,t:'uni',ca:''}}
+  function person(n){for(var i=0;i<state.people.length;i++)if(state.people[i].nome===n)return state.people[i];return null}
+  function tipo(t){return '<span class="tag '+t+'">'+(t==='epi'?'EPI':'Uniforme')+'</span>'}
+  function today(){return new Date(Date.now()-3*3600*1000).toISOString().slice(0,10)}
+  var HINT0=$('a-hint').textContent;
+  function entTot(n){return state.entradas.reduce(function(a,e){return e.item===n?a+e.qtd:a},0)}
+  function saidaTot(n){return state.rows.reduce(function(a,r){return r.item===n?a+r.qtd:a},0)}
+  function saldo(n){return entTot(n)-saidaTot(n)}
+  function sit(c){var e=entTot(c.n),s=saldo(c.n),m=c.min||0;
+    if(!e)return{k:'mut',t:'Sem entrada'};
+    if(s<0)return{k:'red',t:'Negativo'};
+    if(s===0)return{k:'red',t:'Zerado'};
+    if(m>0&&s<=m)return{k:'warn',t:'Baixo'};
+    return{k:'ok',t:'OK'};}
+
+  function groups(){var m={},o=[];state.rows.forEach(function(r){var g=m[r.ret];if(!g){g=m[r.ret]={ret:r.ret,d:r.d,nome:r.nome,mot:r.mot,ok:true,l:[]};o.push(g);}g.l.push(r);if(!r.ok)g.ok=false;});
+    return o.sort(function(a,b){return b.ret-a.ret});}
+  function renderEntregas(){
+    var f=$('r-fil').value,gs=groups().filter(function(g){return f!=='p'||!g.ok});
+    $('rows').innerHTML=gs.length?gs.map(function(g){
+      var its=g.l.map(function(r){return '<div>'+r.qtd+'× '+esc(r.item)+(r.tam&&r.item.indexOf(r.tam)<0?' ('+esc(r.tam)+')':'')+'</div>'}).join('');
+      return '<tr><td><b>'+g.ret+'</b></td><td>'+fmt(g.d)+'</td><td>'+esc(g.nome)+'</td><td>'+its+'</td><td>'+esc(g.mot)+'</td>'+
+      '<td><label class="sig"><input type="checkbox" data-sigret="'+g.ret+'"'+(g.ok?' checked':'')+'><span class="'+(g.ok?'ok':'pend')+'">'+(g.ok?'Assinou':'Pendente')+'</span></label></td>'+
+      '<td><button class="btn" type="button" data-docret="'+g.ret+'" style="padding:6px 10px;font-size:12px">Gerar termo</button></td>'+
+      '<td><button class="x" data-delret="'+g.ret+'" aria-label="Remover retirada '+g.ret+'">×</button></td></tr>'}).join(''):'<tr><td colspan="8" class="empty">'+(f==='p'?'Nenhuma retirada pendente de assinatura.':'Nenhuma retirada registrada ainda.')+'</td></tr>';
+  }
+  var cart=[];
+  function renderCart(){
+    $('cart').innerHTML=cart.length?cart.map(function(l,i){return '<tr><td>'+esc(l.item)+'</td><td>'+esc(l.tam||'—')+'</td><td class="n">'+l.qtd+'</td><td><button class="x" data-cdel="'+i+'" aria-label="Remover item">×</button></td></tr>'}).join(''):'<tr><td colspan="4" class="empty">Nenhum item adicionado ainda.</td></tr>';
+  }
+  function renderSelects(){
+    var cur=$('a-nome').value,ci=$('a-item').value,cs=$('s-nome').value;
+    var opts=state.people.map(function(p){return '<option>'+esc(p.nome)+'</option>'}).join('');
+    $('a-nome').innerHTML=opts||'<option value="">Cadastre a pessoa no Cadastro central</option>';
+    $('s-nome').innerHTML=opts;
+    var ce=$('e-item').value;
+    $('a-item').innerHTML=state.items.map(function(c){return '<option value="'+esc(c.n)+'">'+esc(c.n)+(entTot(c.n)?' (estoque: '+saldo(c.n)+')':'')+'</option>'}).join('');
+    $('e-item').innerHTML=state.items.map(function(c){return '<option value="'+esc(c.n)+'">'+esc(c.n)+'</option>'}).join('');
+    if(cur&&person(cur))$('a-nome').value=cur;
+    if(ci&&state.items.some(function(c){return c.n===ci}))$('a-item').value=ci;
+    if(ce&&state.items.some(function(c){return c.n===ce}))$('e-item').value=ce;
+    if(cs&&person(cs))$('s-nome').value=cs;
+  }
+  function renderCadastro(){
+    $('p-rows').innerHTML=state.people.length?state.people.map(function(p,i){
+      function f(k,type){return '<td><input '+(type?'type="'+type+'" ':'')+'data-p="'+i+'" data-f="'+k+'" value="'+esc(p[k])+'" aria-label="'+k+' de '+esc(p.nome)+'"></td>'}
+      return '<tr><td><b>'+esc(p.nome)+'</b></td>'+f('func')+f('mat')+f('adm','date')+f('cam')+f('calc')+'<td><button class="x" data-pdel="'+i+'" aria-label="Remover '+esc(p.nome)+'">×</button></td></tr>'}).join(''):'<tr><td colspan="7" class="empty">Nenhum colaborador cadastrado.</td></tr>';
+    $('c-rows').innerHTML=state.items.map(function(c,i){var x=sit(c);
+      return '<tr><td>'+esc(c.n)+'</td><td>'+tipo(c.t)+'</td><td>'+(c.t==='epi'?'<input data-i="'+i+'" data-f="ca" value="'+esc(c.ca)+'" placeholder="Nº do CA" aria-label="CA de '+esc(c.n)+'">':'—')+'</td>'+
+      '<td><input data-i="'+i+'" data-f="v" value="'+esc(c.v)+'" aria-label="Troca de '+esc(c.n)+'"></td>'+
+      '<td class="n"><b>'+(entTot(c.n)?saldo(c.n):'—')+'</b></td>'+
+      '<td><input type="number" min="0" data-i="'+i+'" data-f="min" value="'+(c.min||0)+'" aria-label="Estoque mínimo de '+esc(c.n)+'"></td>'+
+      '<td><span class="tag '+x.k+'">'+x.t+'</span></td>'+
+      '<td><button class="x" data-idel="'+i+'" aria-label="Remover '+esc(c.n)+'">×</button></td></tr>'}).join('');
+    var er=state.entradas.map(function(e,i){return{e:e,i:i}}).reverse();
+    $('e-rows').innerHTML=er.length?er.map(function(o){return '<tr><td>'+fmt(o.e.d)+'</td><td>'+esc(o.e.item)+'</td><td class="n">'+o.e.qtd+'</td><td>'+esc(o.e.obs||'—')+'</td><td><button class="x" data-edel="'+o.i+'" aria-label="Remover entrada">×</button></td></tr>'}).join(''):'<tr><td colspan="5" class="empty">Nenhuma entrada de estoque registrada ainda.</td></tr>';
+  }
+  function renderSheet(){
+    var n=$('s-nome').value,p=person(n)||{};
+    $('s-titulo').textContent=n||'Colaborador';
+    $('s-func').textContent=p.func||'—';$('s-adm').textContent=fmt(p.adm);$('s-mat').textContent=p.mat||'—';
+    var rs=state.rows.filter(function(r){return r.nome===n});
+    var html=rs.map(function(r){var c=item(r.item);return '<tr><td>'+fmt(r.d)+'</td><td>'+esc(r.item)+'</td><td>'+esc(r.tam||'—')+'</td><td class="n">'+r.qtd+'</td><td>'+(c.t==='epi'?esc(c.ca||'—'):'—')+'</td><td><div class="blank"></div></td></tr>'}).join('');
+    for(var i=0;i<4;i++)html+='<tr><td><div class="blank"></div></td><td><div class="blank"></div></td><td><div class="blank"></div></td><td><div class="blank"></div></td><td><div class="blank"></div></td><td><div class="blank"></div></td></tr>';
+    $('s-rows').innerHTML=html;
+  }
+  function renderEstoque(){
+    var f=$('x-tipo').value,l=state.items.filter(function(c){return !f||c.t===f});
+    var te=0,ts=0,tb=0;
+    var h=l.map(function(c){var e=entTot(c.n),o=saidaTot(c.n),x=sit(c);te+=e;ts+=o;tb+=e-o;
+      return '<tr><td>'+esc(c.n)+'</td><td>'+tipo(c.t)+'</td><td class="n">'+e+'</td><td class="n">'+o+'</td><td class="n"><b'+(e-o<0?' style="color:var(--red)"':'')+'>'+(e-o)+'</b></td><td class="n">'+(c.min||0)+'</td><td><span class="tag '+x.k+'">'+x.t+'</span></td></tr>'}).join('');
+    $('x-rows').innerHTML=h?h+'<tr><td><b>Total</b></td><td></td><td class="n"><b>'+te+'</b></td><td class="n"><b>'+ts+'</b></td><td class="n"><b>'+tb+'</b></td><td></td><td></td></tr>':'<tr><td colspan="7" class="empty">Nenhum item cadastrado.</td></tr>';
+  }
+  $('x-tipo').addEventListener('change',renderEstoque);
+  function renderAll(){renderSelects();renderEntregas();renderCart();renderCadastro();renderEstoque();renderSheet();}
+
+  function suggestTam(){
+    var p=person($('a-nome').value),c=item($('a-item').value);
+    if(c.tam){$('a-tam').value=c.tam;return;}
+    if(!p)return;
+    $('a-tam').value=/bota|calçado|sapato/i.test(c.n)?(p.calc||''):(c.t==='uni'?(p.cam||''):'');
+  }
+  $('a-data').value=today();$('e-data').value=today();
+  $('a-nome').addEventListener('change',suggestTam);$('a-item').addEventListener('change',suggestTam);
+
+  function addLine(){
+    var q=Math.max(1,parseInt($('a-qtd').value,10)||1),it=$('a-item').value;
+    if(!it){$('a-hint').textContent='Cadastre os itens na aba Cadastro.';return;}
+    cart.push({item:it,tam:$('a-tam').value.trim(),qtd:q});
+    $('a-qtd').value=1;$('a-hint').style.color='';$('a-hint').textContent=HINT0;renderCart();suggestTam();
+  }
+  $('a-add').addEventListener('click',addLine);
+  ['a-tam','a-qtd'].forEach(function(i){$(i).addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addLine();}});});
+  $('a-lim').addEventListener('click',function(){cart=[];renderCart();});
+  $('cart').addEventListener('click',function(e){var i=e.target.getAttribute('data-cdel');if(i===null)return;cart.splice(+i,1);renderCart();});
+  $('a-reg').addEventListener('click',async function(){
+    var h=$('a-hint');h.style.color='var(--warn)';
+    if(!$('a-nome').value){h.textContent='Cadastre a pessoa no Cadastro central na aba Cadastro antes de registrar.';return;}
+    if(!cart.length){h.textContent='Adicione ao menos um item à retirada.';return;}
+    var n=0;state.rows.forEach(function(r){n=Math.max(n,r.ret||0)});
+    $('a-reg').disabled=true;
+    try{n=await VEX.next('epi_retirada',n);}catch(err){h.textContent='Não foi possível gerar o número da retirada. Verifique a conexão e tente de novo.';$('a-reg').disabled=false;return;}
+    $('a-reg').disabled=false;
+    var d=$('a-data').value||today(),nome=$('a-nome').value,mot=$('a-mot').value,tocados=[];
+    for(var i=cart.length-1;i>=0;i--){var l=cart[i];state.rows.unshift({ret:n,d:d,nome:nome,item:l.item,tam:l.tam,qtd:l.qtd,mot:mot,ok:false});}
+    cart.forEach(function(l){if(tocados.indexOf(l.item)<0)tocados.push(l.item)});
+    cart=[];save();renderAll();suggestTam();
+    var av=tocados.filter(function(x){var k=sit(item(x)).k;return k==='red'||k==='warn'}).map(function(x){return x+' ('+saldo(x)+')'});
+    if(av.length){h.style.color='var(--warn)';h.textContent='Retirada nº '+n+' registrada. Atenção ao estoque: '+av.join('; ')+'.';}
+    else{h.style.color='var(--ok)';h.textContent='Retirada nº '+n+' registrada. Use “Gerar termo” na lista abaixo para imprimir e colher a assinatura.';}});
+  $('r-fil').addEventListener('change',renderEntregas);
+  $('rows').addEventListener('click',function(e){var t=e.target;
+    var d=t.getAttribute('data-delret');if(d!==null){state.rows=state.rows.filter(function(r){return r.ret!==+d});save();renderAll();return;}
+    var g=t.getAttribute('data-docret');if(g!==null){var r=state.rows.filter(function(x){return x.ret===+g})[0];$('a-hint').style.color='';gerar(r.nome,$('a-hint'),+g);}});
+  $('rows').addEventListener('change',function(e){var s=e.target.getAttribute('data-sigret');if(s!==null){state.rows.forEach(function(r){if(r.ret===+s)r.ok=e.target.checked});save();renderEntregas();}});
+
+  $('f-pes').addEventListener('submit',function(e){e.preventDefault();
+    var n=$('p-nome').value.trim();if(!n)return;
+    if(person(n)){$('p-msg').textContent='Já existe um colaborador com esse nome. Use outro nome ou diferencie com o sobrenome.';return;}
+    state.people.push({nome:n,func:$('p-func').value.trim(),mat:$('p-mat').value.trim(),adm:$('p-adm').value,cam:$('p-cam').value.trim(),calc:$('p-calc').value.trim()});
+    $('f-pes').reset();$('p-msg').textContent='';save();renderAll();});
+  $('f-ite').addEventListener('submit',function(e){e.preventDefault();
+    var n=$('i-nome').value.trim();if(!n)return;
+    if(state.items.some(function(c){return c.n.toLowerCase()===n.toLowerCase()})){$('i-msg').textContent='Esse item já está cadastrado.';return;}
+    var t=$('i-tipo').value;
+    var mn=Math.max(0,parseInt($('i-min').value,10)||0),ini=Math.max(0,parseInt($('i-est').value,10)||0);
+    state.items.push({n:n,t:t,ca:t==='epi'?$('i-ca').value.trim():'',v:$('i-v').value.trim(),min:mn});
+    if(ini>0)state.entradas.push({d:today(),item:n,qtd:ini,obs:'Estoque inicial'});
+    $('f-ite').reset();$('i-msg').textContent='';save();renderAll();});
+  $('p-rows').addEventListener('input',function(e){var i=e.target.getAttribute('data-p');if(i===null)return;state.people[+i][e.target.getAttribute('data-f')]=e.target.value;save();renderSheet();});
+  $('c-rows').addEventListener('input',function(e){var i=e.target.getAttribute('data-i');if(i===null)return;var k=e.target.getAttribute('data-f');state.items[+i][k]=(k==='min')?Math.max(0,parseInt(e.target.value,10)||0):e.target.value;save();renderEntregas();renderSheet();});
+  $('c-rows').addEventListener('change',function(e){if(e.target.getAttribute('data-f')==='min')renderCadastro();});
+  $('p-rows').addEventListener('click',function(e){var i=e.target.getAttribute('data-pdel');if(i===null)return;
+    var p=state.people[+i];
+    if(state.rows.some(function(r){return r.nome===p.nome})){$('p-msg').textContent=p.nome+' tem entregas registradas. Remova as entregas antes de excluir o cadastro.';return;}
+    state.people.splice(+i,1);$('p-msg').textContent='';save();renderAll();});
+  $('c-rows').addEventListener('click',function(e){var i=e.target.getAttribute('data-idel');if(i===null)return;
+    var c=state.items[+i];
+    if(state.rows.some(function(r){return r.item===c.n})){$('i-msg').textContent='“'+c.n+'” tem entregas registradas. Remova as entregas antes de excluir o item.';return;}
+    if(state.entradas.some(function(x){return x.item===c.n})){$('i-msg').textContent='“'+c.n+'” tem entradas de estoque registradas. Remova as entradas antes de excluir o item.';return;}
+    state.items.splice(+i,1);$('i-msg').textContent='';save();renderAll();});
+
+  $('f-ent').addEventListener('submit',function(e){e.preventDefault();
+    var q=parseInt($('e-qtd').value,10);
+    if(!q||q<1){$('e-msg').textContent='Informe a quantidade recebida.';return;}
+    state.entradas.push({d:$('e-data').value||today(),item:$('e-item').value,qtd:q,obs:$('e-obs').value.trim()});
+    $('e-qtd').value='';$('e-obs').value='';$('e-msg').textContent='';save();renderAll();});
+  $('e-rows').addEventListener('click',function(e){var i=e.target.getAttribute('data-edel');if(i===null)return;
+    state.entradas.splice(+i,1);$('e-msg').textContent='';save();renderAll();});
+
+  /* ---- documento para assinar ---- */
+  function slug(t){return String(t).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-|-$/g,'')}
+  function nowParts(){var iso=new Date(Date.now()-3*3600*1000).toISOString();return{d:iso.slice(0,10),h:iso.slice(11,16)}}
+  function buildDoc(nome,ret){
+    var p=person(nome)||{nome:nome},n=nowParts();
+    var rs=state.rows.filter(function(r){return r.nome===nome&&(!ret||r.ret===ret)}).slice().reverse();
+    var linhas=rs.map(function(r){var c=item(r.item);
+      return '<tr><td>'+fmt(r.d)+'</td><td>'+esc(r.item)+'</td><td>'+(c.t==='epi'?'EPI':'Uniforme')+'</td><td>'+esc(r.tam||'—')+'</td><td class="n">'+r.qtd+'</td><td>'+(c.t==='epi'?esc(c.ca||'—'):'—')+'</td><td>'+esc(r.mot)+'</td></tr>'}).join('');
+    var logo='<svg viewBox="5 30 1135 392" overflow="visible" width="190" role="img" aria-label="VEX Soluções Automotivas"><g fill="#858a8f"><polygon points="51,39 116,40 108,218 38,288"/><polygon points="402.5,117.5 482.5,36.5 827.5,36.5 900,107.5 852.5,156 752.5,62.5 750,107.5 475,107.5 475,254 747.5,254 677.5,326 399,326"/><polygon points="505,151 777.5,151 777.5,214 505,214"/><polygon points="997.5,40 1105,40 832.5,326 722.5,326"/><polygon points="982.5,202.5 932.5,252.5 987.5,329 1112.5,329"/><text x="29" y="411" font-family="Montserrat,Barlow,Arial,sans-serif" font-weight="500" font-size="56" textLength="1089" lengthAdjust="spacing">SOLUÇÕES AUTOMOTIVAS</text></g><g fill="#d8392f"><polygon points="43,326 78,326 363,38 328,38"/><polygon points="134,326 166,326 451,38 419,38"/><polygon points="306.7,93 362.7,107 362.7,113 306.7,99"/><polygon points="217.6,183 273.6,197 273.6,203 217.6,189"/><polygon points="128.5,273 184.5,287 184.5,293 128.5,279"/></g></svg>';
+    var css='@page{size:A4;margin:16mm}*{box-sizing:border-box}body{font-family:Barlow,Arial,sans-serif;color:#26282d;font-size:13px;line-height:1.5;margin:0;padding:24px;max-width:800px;margin:0 auto}'+
+      '.top{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:4px solid #d8392f;padding-bottom:12px;margin-bottom:18px}h1{font-family:Chakra Petch,Arial Narrow,sans-serif;font-size:19px;margin:0;color:#858a8f;letter-spacing:.02em}'+
+      '.meta{font-size:11px;color:#6b6e75;text-align:right}h2{font-family:Chakra Petch,Arial Narrow,sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#858a8f;margin:20px 0 6px}'+
+      'table{border-collapse:collapse;width:100%}th{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;text-align:left;background:#ffffff;padding:6px 8px;border:1px solid #d4d5d9}td{padding:6px 8px;border:1px solid #d4d5d9}.n{text-align:right}'+
+      '.id td:first-child{width:28%;background:#e4e4e4;font-weight:600}.termo{border-left:3px solid #d8392f;padding-left:12px;margin:8px 0}.termo ul{margin:6px 0 8px 18px;padding:0}'+
+      '.sign{display:flex;gap:40px;margin-top:64px}.sign div{flex:1;border-top:1px solid #26282d;padding-top:4px;text-align:center;font-size:12px;color:#6b6e75}'+
+      '.bar{margin-bottom:16px}.bar button{font:600 13px Arial,sans-serif;padding:9px 16px;background:#d8392f;color:#fff;border:0;border-radius:3px;cursor:pointer}@media print{.bar{display:none}body{padding:0}}';
+    return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Termo de Entrega de Uniforme e EPI - '+esc(nome)+'</title>'+
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Barlow:wght@400;500;600&family=Montserrat:wght@500&display=swap"><style>'+css+'</style></head><body>'+
+      '<div class="bar"><button onclick="window.print()">Imprimir ou salvar em PDF</button></div>'+
+      '<div class="top">'+logo+'<div><h1>TERMO DE ENTREGA DE UNIFORME E EPI</h1><div class="meta">VEX Soluções Automotivas'+(ret?'<br>Retirada nº '+ret:'')+'<br>Emitido em '+fmt(n.d)+' às '+n.h+'</div></div></div>'+
+      '<h2>Identificação</h2><table class="id"><tr><td>Colaborador</td><td>'+esc(nome)+'</td></tr><tr><td>Função</td><td>'+esc(p.func||'—')+'</td></tr><tr><td>Matrícula</td><td>'+esc(p.mat||'—')+'</td></tr><tr><td>Admissão</td><td>'+fmt(p.adm)+'</td></tr></table>'+
+      '<h2>Itens entregues</h2><table><thead><tr><th>Data</th><th>Item</th><th>Tipo</th><th>Tam.</th><th class="n">Qtd</th><th>CA</th><th>Motivo</th></tr></thead><tbody>'+linhas+'</tbody></table>'+
+      '<h2>Termo de responsabilidade</h2><div class="termo"><p>Declaro ter recebido gratuitamente da VEX Soluções Automotivas os itens relacionados acima, em perfeito estado de conservação. Comprometo-me a:</p><ul><li>usar os itens apenas para a finalidade a que se destinam, durante a jornada de trabalho;</li><li>zelar pela guarda e conservação, e comunicar de imediato qualquer dano, defeito ou extravio;</li><li>solicitar a troca quando o item estiver desgastado ou deixar de proteger;</li><li>devolver os itens quando solicitado ou no término do contrato de trabalho.</li></ul><p>Estou ciente de que o uso do EPI é obrigatório (NR-6) e de que o descumprimento sem justificativa pode ser tratado como falta disciplinar. Em caso de dano causado por dolo, autorizo a VEX Soluções Automotivas a descontar de minha remuneração o valor correspondente ao prejuízo, nos termos do art. 462, §1º, da CLT.</p></div>'+
+      '<p>Local e data: ______________________________, ____ / ____ / ________</p>'+
+      '<div class="sign"><div>'+esc(nome)+'<br>Colaborador</div><div>Responsável VEX Soluções Automotivas</div></div>'+
+      '</body></html>';
+  }
+  function getDl(){return Promise.resolve({save:function(r){return VEX.download(r.filename,r.data,'text/html')}})}
+  function gerar(nome,msgEl,ret){
+    msgEl.textContent='';
+    if(!nome){msgEl.textContent='Escolha um colaborador.';return;}
+    if(!state.rows.some(function(r){return r.nome===nome})){msgEl.textContent=nome+' ainda não tem entregas registradas.';return;}
+    getDl().then(function(dl){
+      if(!dl){msgEl.textContent='Salvar arquivo não está disponível nesta visualização. Abra a página no claude.ai para gerar o documento.';return;}
+      var fn='Termo-EPI-Uniforme-'+(ret?'Retirada-'+ret+'-':'')+slug(nome)+'-'+nowParts().d+'.html';
+      return dl.save({filename:fn,data:buildDoc(nome,ret)}).then(function(){msgEl.style.color='var(--ok)';msgEl.textContent='Documento salvo: '+fn+'. Abra, imprima e colha a assinatura.';})
+        .catch(function(e){msgEl.style.color='';msgEl.textContent=(e&&e.code==='declined')?'Salvamento cancelado.':'Não foi possível salvar o documento ('+((e&&e.code)||'erro')+').';});
+    });
+  }
+  $('s-gerar').addEventListener('click',function(){$('s-msg').style.color='';gerar($('s-nome').value,$('s-msg'));});
+  $('s-nome').addEventListener('change',renderSheet);
+  document.querySelector('nav').addEventListener('click',function(e){var t=e.target.getAttribute('data-tab');if(!t)return;
+    ['reg','est','cad','fic'].forEach(function(k){$(k).hidden=k!==t;$('t-'+k).setAttribute('aria-selected',k===t?'true':'false')});
+    if(t==='fic')renderSheet();});
+  VEX.onRemote(renderAll);
+  renderAll();suggestTam();
+})();
+</script>
+</body></html>

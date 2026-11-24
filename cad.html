@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cadastro Central · VEX</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=Montserrat:wght@500&display=swap">
+<style>
+/* Layout: cabeçalho branco com a marca em cinza gelo, abas por tarefa (Abastecimentos, Resumo, Cadastro), tabelas de trabalho no centro. */
+:root{
+  --navy:#858a8f; --strong:#858a8f; --red:#d8392f; --paper:#fbfbfc; --ink:#26282d; --line:#e3e4e7;
+  --surface:#ffffff; --muted:#6b6e75; --ok:#1f7a4d; --warn:#b26a00; --soft:#f1f2f4;
+  --band:#ffffff; --logo:#858a8f;
+  --f-display:'Chakra Petch','Arial Narrow',sans-serif; --f-body:'Barlow',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.band{background:var(--band);color:var(--strong);padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band-in{max-width:1100px;margin:0 auto;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.logo{overflow:visible;width:230px;max-width:60vw;height:auto;display:block}
+.band h1{font:600 22px/1.15 var(--f-display);margin:0;letter-spacing:.02em;text-wrap:balance}
+.band p{margin:4px 0 0;color:#858a8f;font-size:13px}
+.stripe{height:5px;background:var(--red)}
+main{max-width:1100px;margin:0 auto;padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+nav button{font:600 14px var(--f-display);letter-spacing:.03em;padding:9px 16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;border-radius:3px}
+nav button[aria-selected="true"]{background:var(--surface);color:var(--strong);border-color:var(--navy);box-shadow:inset 0 -3px 0 var(--red)}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+h2{font:600 18px var(--f-display);margin:0 0 12px;letter-spacing:.02em}
+.panel{background:var(--surface);border:1px solid var(--line);padding:16px;margin-bottom:18px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;min-width:0}
+input,select{font:400 15px var(--f-body);padding:8px 9px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:3px;min-width:0;width:100%}
+td input,td select{padding:6px 7px;font-size:14px;min-width:90px}
+.btn{font:600 14px var(--f-display);padding:10px 16px;background:var(--red);color:#fff;border:0;border-radius:3px;cursor:pointer;letter-spacing:.03em}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;font-variant-numeric:tabular-nums}
+th{font:600 12px var(--f-display);text-transform:uppercase;letter-spacing:.07em;text-align:left;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--navy);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n,th.n{text-align:right}
+.tag{display:inline-block;font:600 11px var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border:1px solid currentColor;border-radius:2px;white-space:nowrap}
+.tag.ok{color:var(--ok)} .tag.warn{color:var(--warn)} .tag.red{color:var(--red)} .tag.mut{color:var(--muted)}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 8px}
+.hint{color:var(--muted);font-size:13px;margin:8px 0 0}
+.msg{color:var(--warn);font-size:13px;margin:8px 0 0;min-height:1em}
+.tally{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.tally div{background:var(--soft);padding:8px 14px;border-left:3px solid var(--red);font-size:14px}
+.tally b{font-family:var(--f-display);font-size:19px;margin-right:6px}
+.empty{color:var(--muted);padding:14px 4px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+.row label{min-width:220px}
+@media (max-width:520px){.band h1{font-size:19px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:640px){#o-tab{min-width:0!important}#o-tab thead{display:none}#o-tab tr{display:block;border:1px solid var(--line);border-left:3px solid var(--red);margin-bottom:10px;padding:6px 8px}#o-tab td{display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;padding:5px 0;text-align:right}#o-tab td::before{content:attr(data-l);font:600 11px var(--f-display);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left}#o-tab td input{min-width:0;width:140px}}
+.thumb{font:600 12px var(--f-display);background:var(--soft);border:1px solid var(--line);padding:2px 8px;cursor:pointer;color:var(--navy);border-radius:2px}
+.thumb:hover{border-color:var(--red)}
+#fv{position:fixed;inset:0;background:rgba(20,22,26,.88);display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:9999;padding:16px}
+#fv img{max-width:100%;max-height:80vh;background:#fff}
+#fv p{color:#fff;margin:0;font-size:14px;text-align:center}
+#fv button{background:#fff;border:0;padding:8px 18px;font-weight:700;cursor:pointer}
+
+.tk{border:1px solid var(--line);border-left:6px solid var(--navy);background:#fff;padding:12px 14px;margin-bottom:12px}
+.tk.exec{border-left-color:var(--ok)}.tk.pausa{border-left-color:var(--warn)}.tk.concl{border-left-color:var(--red)}
+.tkh{font-size:16px;margin-bottom:4px}.tkd{font-size:16px;margin:4px 0}
+.clk{font:700 20px var(--f-display);color:var(--ink)}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.btn.big{min-height:50px;padding:12px 22px;font-size:16px;flex:1 1 150px}
+.mini{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-top:10px;padding:10px;background:var(--soft)}
+.mini[hidden]{display:none}.mini label{flex:1 1 200px}
+.oh{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px;font-size:16px}.oh .hint{margin:0 0 0 auto}
+.addt{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+nav button[hidden]{display:none}
+.itrow{display:grid;grid-template-columns:2.2fr 1.3fr .6fr .9fr 1.1fr 1fr 1fr auto;gap:10px;align-items:end;padding:10px 0;border-bottom:1px dashed var(--line)}
+.itrow label{min-width:0}.itrow .x{margin-bottom:6px}
+label[hidden]{display:none}
+.chk{flex-direction:row;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink)}
+details.panel summary{list-style:none}details.panel summary::-webkit-details-marker{display:none}
+@media(max-width:900px){.itrow{grid-template-columns:1fr 1fr}.itrow label:first-child{grid-column:1/-1}}
+body{margin:0}</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="vex" viewBox="5 30 1135 392" overflow="visible"><g style="fill:var(--logo)"><polygon points="51,39 116,40 108,218 38,288"/><polygon points="402.5,117.5 482.5,36.5 827.5,36.5 900,107.5 852.5,156 752.5,62.5 750,107.5 475,107.5 475,254 747.5,254 677.5,326 399,326"/><polygon points="505,151 777.5,151 777.5,214 505,214"/><polygon points="997.5,40 1105,40 832.5,326 722.5,326"/><polygon points="982.5,202.5 932.5,252.5 987.5,329 1112.5,329"/><text x="29" y="411" font-family="Montserrat,Barlow,Arial,sans-serif" font-weight="500" font-size="56" textLength="1089" lengthAdjust="spacing">SOLUÇÕES AUTOMOTIVAS</text></g><g fill="#d8392f"><polygon points="43,326 78,326 363,38 328,38"/><polygon points="134,326 166,326 451,38 419,38"/><polygon points="306.7,93 362.7,107 362.7,113 306.7,99"/><polygon points="217.6,183 273.6,197 273.6,203 217.6,189"/><polygon points="128.5,273 184.5,287 184.5,293 128.5,279"/></g></symbol>
+</svg>
+
+<header>
+  <div class="band"><div class="band-in">
+    <svg class="logo" viewBox="5 30 1135 392" overflow="visible" role="img" aria-label="VEX Soluções Automotivas"><use href="#vex"/></svg>
+    <div>
+      <h1>Cadastro Central</h1>
+      <p>VEX Soluções Automotivas · Rev. 00 · Novembro de 2026</p>
+    </div>
+  </div></div>
+  <div class="stripe"></div>
+</header>
+
+<main>
+  <nav role="tablist" aria-label="Seções">
+    <button role="tab" id="t-pes" aria-selected="true" data-tab="pes">Pessoas</button>
+    <button role="tab" id="t-vei" aria-selected="false" data-tab="vei">Veículos</button>
+  </nav>
+
+  <section id="pes">
+    <div class="panel">
+      <h2 id="h-pes">Cadastrar pessoa</h2>
+      <p class="hint" style="margin-top:0">Uma pessoa só serve para todos os controles: uniformes e EPI, ferramentas, ponto, abastecimento, diário de bordo e ordens de serviço. Os papéis dizem onde ela aparece como condutor ou mecânico.</p>
+      <form id="f-p">
+        <div class="form">
+          <label for="p-no">Nome<input id="p-no" required></label>
+          <label for="p-fu">Função<input id="p-fu" placeholder="Ex.: MECÂNICO"></label>
+          <label for="p-ma">Matrícula<input id="p-ma"></label>
+          <label for="p-ad">Admissão<input type="date" id="p-ad"></label>
+        </div>
+        <div class="form" style="margin-top:10px">
+          <label class="chk" style="margin-top:22px"><input type="checkbox" id="p-rc" style="width:auto"> Condutor (dirige veículos)</label>
+          <label class="chk" style="margin-top:22px"><input type="checkbox" id="p-rm" style="width:auto"> Mecânico (executa tarefas na OS)</label>
+          <label for="p-se">Setor (mecânico)<input id="p-se" list="dl-se" placeholder="Ex.: ELÉTRICA"></label>
+          <label for="p-us">Usuário de acesso (login)<select id="p-us"></select></label>
+        </div>
+        <div class="form" id="bx-cnh" style="margin-top:10px">
+          <label for="p-cn">CNH nº<input id="p-cn"></label>
+          <label for="p-ca">Categoria<input id="p-ca" maxlength="3" placeholder="AB"></label>
+          <label for="p-va">Validade da CNH<input type="date" id="p-va"></label>
+        </div>
+        <div class="form" style="margin-top:10px">
+          <label for="p-cm">Camisa (tamanho)<input id="p-cm" placeholder="Ex.: M"></label>
+          <label for="p-cl">Calçado (nº)<input id="p-cl" placeholder="Ex.: 42"></label>
+          <label for="p-ju">Jornada seg-sex (HH:MM)<input id="p-ju" placeholder="08:48" data-nocaps></label>
+          <label for="p-js">Jornada sábado (HH:MM)<input id="p-js" placeholder="00:00" data-nocaps></label>
+        </div>
+        <div class="acts"><label class="chk"><input type="checkbox" id="p-at" checked style="width:auto"> Ativo</label>
+          <button class="btn" type="submit" id="p-sv">Cadastrar pessoa</button><button class="btn sec" type="button" id="p-cx" hidden>Cancelar edição</button></div>
+      </form>
+      <datalist id="dl-se"><option value="MECÂNICA"><option value="ELÉTRICA"><option value="HIDRÁULICA"><option value="FUNILARIA"></datalist>
+      <p class="hint">Para o condutor ou o mecânico entrar no aplicativo e ver as próprias tarefas, escolha também o <b>usuário de acesso</b>. Sem esse vínculo, ele não aparece para si mesmo no sistema.</p>
+      <p class="msg" id="p-msg" role="status"></p>
+    </div>
+    <div class="panel"><div class="row"><label for="p-b">Buscar<input id="p-b" placeholder="Nome, função ou matrícula"></label></div>
+      <div class="tablewrap" style="margin-top:12px"><table style="min-width:900px"><thead><tr><th>Nome</th><th>Função / matrícula</th><th>Papéis</th><th>CNH</th><th>Login</th><th></th></tr></thead><tbody id="p-rows"></tbody></table></div></div>
+  </section>
+
+  <section id="vei" hidden>
+    <div class="panel">
+      <h2 id="h-vei">Cadastrar veículo</h2>
+      <p class="hint" style="margin-top:0">Cada placa é cadastrada uma vez e vale para abastecimento, diário de bordo, compras e ordens de serviço. O consumo esperado por combustível continua sendo definido no Abastecimento.</p>
+      <form class="form" id="f-v">
+        <label for="v-pl">Placa<input id="v-pl" required maxlength="8"></label>
+        <label for="v-de">Marca / modelo<input id="v-de"></label>
+        <label for="v-fr">Cliente / frota<input id="v-fr"></label>
+        <label for="v-tq">Capacidade do tanque (opcional)<input type="number" id="v-tq" min="0" step="0.1"></label>
+        <button class="btn" type="submit" id="v-sv">Cadastrar veículo</button><button class="btn sec" type="button" id="v-cx" hidden>Cancelar edição</button>
+      </form>
+      <p class="msg" id="v-msg" role="status"></p>
+    </div>
+    <div class="panel"><div class="row"><label for="v-b">Buscar<input id="v-b" placeholder="Placa, modelo ou cliente"></label></div>
+      <div class="tablewrap" style="margin-top:12px"><table style="min-width:640px"><thead><tr><th>Placa</th><th>Marca / modelo</th><th>Cliente / frota</th><th class="n">Tanque</th><th></th></tr></thead><tbody id="v-rows"></tbody></table></div></div>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="vex.js"></script>
+<script>
+(async function(){
+  var state=await VEX.boot('cad',{colls:{pessoas:'asc',veic:'asc'},seed:{pessoas:[],veic:[]}});
+  function save(){VEX.save();}
+  function $(i){return document.getElementById(i)}
+  function esc(t){var d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}
+  function msg(id,t,ok){var m=$(id);m.style.color=ok?'var(--ok)':'';m.textContent=t}
+  function nf(n,d){return (+n).toLocaleString('pt-BR',{minimumFractionDigits:d||0,maximumFractionDigits:d||0})}
+  function placa(v){return String(v||'').toUpperCase().replace(/[\s\-]/g,'')}
+  function br(d){return d?d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(0,4):''}
+  function hoje(){return new Date(Date.now()-3*3600*1000).toISOString().slice(0,10)}
+  function toMin(t){var m=/^(\d{1,2}):(\d{2})$/.exec((t||'').trim());return m?(+m[1])*60+(+m[2]):0}
+  function fmin(n){n=+n||0;return ('0'+Math.floor(n/60)).slice(-2)+':'+('0'+(n%60)).slice(-2)}
+  var profs=[],edP=null,edV=null;
+
+  /* ---- pessoas ---- */
+  function loginOpts(cur){
+    var usados={};state.pessoas.forEach(function(p){if(p.uid&&p!==edP)usados[p.uid]=1});
+    return '<option value="">(sem login)</option>'+profs.filter(function(u){return !usados[u.id]}).map(function(u){return '<option value="'+u.id+'"'+(u.id===cur?' selected':'')+'>'+esc((u.nome||u.email)+' · '+u.email)+'</option>'}).join('');
+  }
+  function renderP(){
+    var b=$('p-b').value.trim().toLowerCase(),l=state.pessoas.filter(function(p){return !b||((p.nome||'')+' '+(p.func||'')+' '+(p.mat||'')).toLowerCase().indexOf(b)>=0});
+    l=l.slice().sort(function(a,c){return (a.nome||'').localeCompare(c.nome||'')});
+    var t=hoje();
+    $('p-rows').innerHTML=l.length?l.map(function(p){var pa=p.papeis||[],vencida=p.val&&p.val<t,u=profs.filter(function(x){return x.id===p.uid})[0];
+      return '<tr><td><b>'+esc(p.nome)+'</b>'+(p.ativo===false?' <span class="tag mut">inativo</span>':'')+'</td><td>'+esc(p.func||'—')+'<br><span class="hint">'+esc(p.mat?'Mat. '+p.mat:'')+'</span></td><td>'+(pa.indexOf('condutor')>=0?'<span class="tag ok">Condutor</span> ':'')+(pa.indexOf('mecanico')>=0?'<span class="tag warn">Mecânico'+(p.setor?' · '+esc(p.setor):'')+'</span>':'')+'</td><td>'+(p.cnh?esc(p.cnh)+' '+esc(p.cat||'')+'<br><span class="hint" style="'+(vencida?'color:var(--red)':'')+'">'+(p.val?(vencida?'VENCIDA ':'até ')+br(p.val):'')+'</span>':'<span class="hint">—</span>')+'</td><td>'+(p.uid?esc(u?(u.nome||u.email):'vinculado'):'<span class="hint">sem login</span>')+'</td><td><button class="btn sm sec" data-a="edp" data-i="'+state.pessoas.indexOf(p)+'" type="button">Editar</button> <button class="x" data-a="rmp" data-i="'+state.pessoas.indexOf(p)+'" aria-label="Excluir pessoa">×</button></td></tr>'}).join(''):'<tr><td colspan="6" class="empty">Nenhuma pessoa cadastrada.</td></tr>';
+    $('p-us').innerHTML=loginOpts(edP&&edP.uid);if(edP)$('p-us').value=edP.uid||'';
+    $('bx-cnh').style.opacity=$('p-rc').checked?'1':'.55';
+  }
+  function limpaP(){edP=null;$('f-p').reset();$('p-at').checked=true;$('h-pes').textContent='Cadastrar pessoa';$('p-sv').textContent='Cadastrar pessoa';$('p-cx').hidden=true;renderP()}
+  $('p-cx').addEventListener('click',limpaP);
+  $('p-rc').addEventListener('change',renderP);
+  $('p-b').addEventListener('input',renderP);
+  $('f-p').addEventListener('submit',function(e){e.preventDefault();
+    var n=$('p-no').value.trim();if(!n)return;
+    var dup=state.pessoas.filter(function(p){return p!==edP&&(p.nome||'').trim().toLowerCase()===n.toLowerCase()})[0];
+    if(dup){msg('p-msg','Já existe uma pessoa com o nome “'+n+'”.');return}
+    var papeis=[];if($('p-rc').checked)papeis.push('condutor');if($('p-rm').checked)papeis.push('mecanico');
+    var d={nome:n,func:$('p-fu').value.trim(),mat:$('p-ma').value.trim(),adm:$('p-ad').value,setor:$('p-se').value.trim(),papeis:papeis,uid:$('p-us').value,
+      cnh:$('p-cn').value.trim(),cat:$('p-ca').value.trim().toUpperCase(),val:$('p-va').value,cam:$('p-cm').value.trim(),calc:$('p-cl').value.trim(),
+      jdu:toMin($('p-ju').value),jsab:toMin($('p-js').value),ativo:$('p-at').checked};
+    if(papeis.indexOf('mecanico')>=0&&!d.setor){msg('p-msg','Informe o setor do mecânico.');return}
+    if(edP){Object.assign(edP,d);msg('p-msg','Dados de '+n+' atualizados.',true)}else{state.pessoas.push(d);msg('p-msg',n+' cadastrado(a).',true)}
+    save();limpaP();renderAll();
+  });
+  /* ---- veículos ---- */
+  function renderV(){
+    var b=$('v-b').value.trim().toLowerCase(),l=state.veic.filter(function(v){return !b||((v.placa||'')+' '+(v.desc||'')+' '+(v.frota||'')).toLowerCase().indexOf(b)>=0});
+    l=l.slice().sort(function(a,c){return (a.placa||'').localeCompare(c.placa||'')});
+    $('v-rows').innerHTML=l.length?l.map(function(v){var i=state.veic.indexOf(v);return '<tr><td><b>'+esc(v.placa)+'</b></td><td>'+esc(v.desc||'')+'</td><td>'+esc(v.frota||'')+'</td><td class="n">'+(v.tanque?nf(v.tanque,1):'—')+'</td><td><button class="btn sm sec" data-a="edv" data-i="'+i+'" type="button">Editar</button> <button class="x" data-a="rmv" data-i="'+i+'" aria-label="Excluir veículo">×</button></td></tr>'}).join(''):'<tr><td colspan="5" class="empty">Nenhum veículo cadastrado.</td></tr>';
+  }
+  function limpaV(){edV=null;$('f-v').reset();$('h-vei').textContent='Cadastrar veículo';$('v-sv').textContent='Cadastrar veículo';$('v-cx').hidden=true}
+  $('v-cx').addEventListener('click',limpaV);$('v-b').addEventListener('input',renderV);
+  $('f-v').addEventListener('submit',function(e){e.preventDefault();var pl=placa($('v-pl').value);if(!pl)return;
+    var dup=state.veic.filter(function(v){return v!==edV&&v.placa===pl})[0];if(dup){msg('v-msg','A placa '+pl+' já está cadastrada.');return}
+    var d={placa:pl,desc:$('v-de').value.trim(),frota:$('v-fr').value.trim(),tanque:parseFloat($('v-tq').value)||0};
+    if(edV){Object.assign(edV,d);msg('v-msg','Veículo '+pl+' atualizado.',true)}else{d.ex={};state.veic.push(d);msg('v-msg','Veículo '+pl+' cadastrado.',true)}
+    save();limpaV();renderAll()});
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a'),i=+b.getAttribute('data-i');
+    if(a==='edp'){var p=state.pessoas[i];edP=p;$('h-pes').textContent='Editar '+p.nome;$('p-sv').textContent='Salvar alterações';$('p-cx').hidden=false;
+      $('p-no').value=p.nome||'';$('p-fu').value=p.func||'';$('p-ma').value=p.mat||'';$('p-ad').value=p.adm||'';$('p-se').value=p.setor||'';
+      $('p-rc').checked=(p.papeis||[]).indexOf('condutor')>=0;$('p-rm').checked=(p.papeis||[]).indexOf('mecanico')>=0;
+      $('p-cn').value=p.cnh||'';$('p-ca').value=p.cat||'';$('p-va').value=p.val||'';$('p-cm').value=p.cam||'';$('p-cl').value=p.calc||'';
+      $('p-ju').value=p.jdu?fmin(p.jdu):'';$('p-js').value=p.jsab?fmin(p.jsab):'';$('p-at').checked=p.ativo!==false;renderP();$('p-us').value=p.uid||'';window.scrollTo(0,0)}
+    if(a==='rmp'){var q=state.pessoas[i];if(q&&confirm('Excluir '+q.nome+' do cadastro? Os registros antigos dos módulos continuam com o nome, mas ela deixa de aparecer nas listas.')){state.pessoas.splice(i,1);save();limpaP();renderAll()}}
+    if(a==='edv'){var v=state.veic[i];edV=v;$('h-vei').textContent='Editar '+v.placa;$('v-sv').textContent='Salvar alterações';$('v-cx').hidden=false;$('v-pl').value=v.placa;$('v-de').value=v.desc||'';$('v-fr').value=v.frota||'';$('v-tq').value=v.tanque||'';window.scrollTo(0,0)}
+    if(a==='rmv'){var w=state.veic[i];if(w&&confirm('Excluir o veículo '+w.placa+' do cadastro? Os registros antigos mantêm a placa, mas ela deixa de aparecer nas listas.')){state.veic.splice(i,1);save();limpaV();renderAll()}}
+  });
+  function aba(t){['pes','vei'].forEach(function(k){$(k).hidden=k!==t;$('t-'+k).setAttribute('aria-selected',k===t?'true':'false')})}
+  document.querySelector('nav').addEventListener('click',function(e){var t=e.target.closest('[data-tab]');if(t)aba(t.getAttribute('data-tab'))});
+  function renderAll(){renderP();renderV()}
+  function busy(){var a=document.activeElement;return a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)&&a.value!==''&&!a.closest('nav')}
+  VEX.onRemote(function(){if(busy())return;if(!edP&&!edV)renderAll()});
+  VEX.B.profiles().then(function(l){profs=l;renderAll()},function(){});
+  renderAll();
+})();
+</script>
+</body></html>

@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Controle de Ferramentas · VEX</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=Montserrat:wght@500&display=swap">
+<style>
+/* Layout: cabeçalho branco com a marca em cinza gelo, abas por tarefa (Movimentação, Cadastro, Inventário), tabelas de trabalho no centro. */
+:root{
+  --navy:#858a8f; --strong:#858a8f; --red:#d8392f; --paper:#fbfbfc; --ink:#26282d; --line:#e3e4e7;
+  --surface:#ffffff; --muted:#6b6e75; --ok:#1f7a4d; --warn:#b26a00; --soft:#f1f2f4;
+  --band:#ffffff; --logo:#858a8f;
+  --f-display:'Chakra Petch','Arial Narrow',sans-serif; --f-body:'Barlow',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.band{background:var(--band);color:var(--strong);padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band-in{max-width:1100px;margin:0 auto;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.logo{overflow:visible;width:230px;max-width:60vw;height:auto;display:block}
+.band h1{font:600 22px/1.15 var(--f-display);margin:0;letter-spacing:.02em;text-wrap:balance}
+.band p{margin:4px 0 0;color:#858a8f;font-size:13px}
+.stripe{height:5px;background:var(--red)}
+main{max-width:1100px;margin:0 auto;padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+nav button{font:600 14px var(--f-display);letter-spacing:.03em;padding:9px 16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;border-radius:3px}
+nav button[aria-selected="true"]{background:var(--surface);color:var(--strong);border-color:var(--navy);box-shadow:inset 0 -3px 0 var(--red)}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+h2{font:600 18px var(--f-display);margin:0 0 12px;letter-spacing:.02em}
+.panel{background:var(--surface);border:1px solid var(--line);padding:16px;margin-bottom:18px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;min-width:0}
+input,select{font:400 15px var(--f-body);padding:8px 9px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:3px;min-width:0;width:100%}
+td input,td select{padding:6px 7px;font-size:14px;min-width:90px}
+.btn{font:600 14px var(--f-display);padding:10px 16px;background:var(--red);color:#fff;border:0;border-radius:3px;cursor:pointer;letter-spacing:.03em}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;font-variant-numeric:tabular-nums}
+th{font:600 12px var(--f-display);text-transform:uppercase;letter-spacing:.07em;text-align:left;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--navy);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n,th.n{text-align:right}
+.tag{display:inline-block;font:600 11px var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border:1px solid currentColor;border-radius:2px;white-space:nowrap}
+.tag.ok{color:var(--ok)} .tag.warn{color:var(--warn)} .tag.red{color:var(--red)} .tag.mut{color:var(--muted)}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 8px}
+.hint{color:var(--muted);font-size:13px;margin:8px 0 0}
+.msg{color:var(--warn);font-size:13px;margin:8px 0 0;min-height:1em}
+.tally{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.tally div{background:var(--soft);padding:8px 14px;border-left:3px solid var(--red);font-size:14px}
+.tally b{font-family:var(--f-display);font-size:19px;margin-right:6px}
+.empty{color:var(--muted);padding:14px 4px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+.row label{min-width:220px}
+@media (max-width:520px){.band h1{font-size:19px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+body{margin:0}</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="vex" viewBox="5 30 1135 392" overflow="visible"><g style="fill:var(--logo)"><polygon points="51,39 116,40 108,218 38,288"/><polygon points="402.5,117.5 482.5,36.5 827.5,36.5 900,107.5 852.5,156 752.5,62.5 750,107.5 475,107.5 475,254 747.5,254 677.5,326 399,326"/><polygon points="505,151 777.5,151 777.5,214 505,214"/><polygon points="997.5,40 1105,40 832.5,326 722.5,326"/><polygon points="982.5,202.5 932.5,252.5 987.5,329 1112.5,329"/><text x="29" y="411" font-family="Montserrat,Barlow,Arial,sans-serif" font-weight="500" font-size="56" textLength="1089" lengthAdjust="spacing">SOLUÇÕES AUTOMOTIVAS</text></g><g fill="#d8392f"><polygon points="43,326 78,326 363,38 328,38"/><polygon points="134,326 166,326 451,38 419,38"/><polygon points="306.7,93 362.7,107 362.7,113 306.7,99"/><polygon points="217.6,183 273.6,197 273.6,203 217.6,189"/><polygon points="128.5,273 184.5,287 184.5,293 128.5,279"/></g></symbol>
+</svg>
+
+<header>
+  <div class="band"><div class="band-in">
+    <svg class="logo" viewBox="5 30 1135 392" overflow="visible" role="img" aria-label="VEX Soluções Automotivas"><use href="#vex"/></svg>
+    <div>
+      <h1>Controle de Ferramentas</h1>
+      <p>VEX Soluções Automotivas · Rev. 00 · Outubro de 2026</p>
+    </div>
+  </div></div>
+  <div class="stripe"></div>
+</header>
+
+<main>
+  <nav role="tablist" aria-label="Seções">
+    <button role="tab" id="t-mov" aria-selected="true" data-tab="mov">Movimentação</button>
+    <button role="tab" id="t-cad" aria-selected="false" data-tab="cad">Cadastro</button>
+    <button role="tab" id="t-inv" aria-selected="false" data-tab="inv">Inventário</button>
+  </nav>
+
+  <section id="mov">
+    <div class="tally" id="tally"></div>
+
+    <div class="panel">
+      <h2>Retirar ferramenta</h2>
+      <form class="form" id="f-ret">
+        <label for="m-data">Data<input type="date" id="m-data" required></label>
+        <label for="m-nome">Colaborador<select id="m-nome" required></select></label>
+        <label for="m-cod">Ferramenta disponível<select id="m-cod" required></select></label>
+        <label for="m-obs">Observação<input id="m-obs" placeholder="Ex.: OS 1234"></label>
+        <button class="btn" type="submit">Registrar retirada</button>
+      </form>
+      <p class="msg" id="m-msg" role="status"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Em posse dos colaboradores</h2>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Código</th><th>Ferramenta</th><th>Colaborador</th><th>Retirada</th><th class="n">Dias</th><th>Estado na devolução</th><th></th></tr></thead>
+        <tbody id="posse"></tbody>
+      </table></div>
+    </div>
+
+    <div class="panel">
+      <h2>Termo de responsabilidade</h2>
+      <div class="row">
+        <label for="t-nome">Colaborador<select id="t-nome"></select></label>
+        <button class="btn" type="button" id="t-gerar">Gerar termo para assinar</button>
+      </div>
+      <p class="hint">Gera o termo com as ferramentas que o colaborador tem em posse hoje. Abra o arquivo salvo, imprima, colha a assinatura e arquive.</p>
+      <p class="msg" id="t-msg" role="status"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Histórico de movimentações</h2>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Retirada</th><th>Código</th><th>Ferramenta</th><th>Colaborador</th><th>Devolução</th><th>Obs.</th><th></th></tr></thead>
+        <tbody id="hist"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section id="cad" hidden>
+    <div class="panel">
+      <h2>Ferramentas</h2>
+      <form class="form" id="f-fer">
+        <label for="f-cod">Código<input id="f-cod" required></label>
+        <label for="f-nome">Descrição<input id="f-nome" required placeholder="Ex.: Torquímetro 1/2"></label>
+        <label for="f-cat">Categoria<select id="f-cat"><option>Manual</option><option>Elétrica</option><option>Pneumática</option><option>Medição</option><option>Diagnóstico</option><option>Elevação</option><option>Outra</option></select></label>
+        <label for="f-marca">Marca / modelo<input id="f-marca"></label>
+        <label for="f-serie">Nº de série<input id="f-serie"></label>
+        <label for="f-local">Local<input id="f-local" placeholder="Armário, bancada…"></label>
+        <button class="btn" type="submit">Cadastrar</button>
+      </form>
+      <div class="tablewrap" style="margin-top:14px"><table>
+        <thead><tr><th>Código</th><th>Descrição</th><th>Categoria</th><th>Marca / modelo</th><th>Nº de série</th><th>Local</th><th>Estado</th><th></th></tr></thead>
+        <tbody id="f-rows"></tbody>
+      </table></div>
+      <p class="hint">As linhas marcadas “Exemplo” são só para mostrar o preenchimento. Edite ou exclua à vontade.</p>
+      <p class="msg" id="f-msg" role="status"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Colaboradores</h2>
+      <form class="form" id="f-pes">
+        <label for="p-nome">Nome<input id="p-nome" required></label>
+        <label for="p-func">Função<input id="p-func" placeholder="Ex.: Mecânico"></label>
+        <label for="p-mat">Matrícula<input id="p-mat"></label>
+        <button class="btn" type="submit">Cadastrar</button>
+      </form>
+      <div class="tablewrap" style="margin-top:14px"><table style="min-width:520px">
+        <thead><tr><th>Nome</th><th>Função</th><th>Matrícula</th><th></th></tr></thead>
+        <tbody id="p-rows"></tbody>
+      </table></div>
+      <p class="msg" id="p-msg" role="status"></p>
+    </div>
+  </section>
+
+  <section id="inv" hidden>
+    <div class="panel">
+      <h2>Nova conferência</h2>
+      <div class="row">
+        <label for="i-data">Data<input type="date" id="i-data"></label>
+        <label for="i-resp">Responsável<input id="i-resp" placeholder="Nome de quem conferiu"></label>
+        <button class="btn" type="button" id="i-reg">Registrar inventário</button>
+      </div>
+      <div class="tablewrap" style="margin-top:14px"><table style="min-width:640px">
+        <thead><tr><th>Código</th><th>Ferramenta</th><th>Local</th><th>Com quem está</th><th>Conferência</th></tr></thead>
+        <tbody id="i-rows"></tbody>
+      </table></div>
+      <p class="hint">Marque cada ferramenta como conferida, não localizada ou danificada. Ao registrar, o estado das ferramentas é atualizado.</p>
+      <p class="msg" id="i-msg" role="status"></p>
+    </div>
+    <div class="panel">
+      <h2>Inventários registrados</h2>
+      <div class="tablewrap"><table style="min-width:620px">
+        <thead><tr><th>Data</th><th>Responsável</th><th class="n">Total</th><th class="n">Conferidas</th><th class="n">Não localizadas</th><th class="n">Danificadas</th><th></th></tr></thead>
+        <tbody id="i-hist"></tbody>
+      </table></div>
+    </div>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="vex.js"></script>
+<script>
+(async function(){
+  var state={
+    tools:[],
+    people:[],
+    movs:[],invs:[]
+  };
+  state=await VEX.boot('ferr',{colls:{tools:'asc',people:'asc',movs:'asc',invs:'asc'},link:{people:{m:'cad',c:'pessoas'}},seed:state});
+  VEX.central(['f-pes']);
+  var chk={};
+  function save(){VEX.save();}
+  function $(i){return document.getElementById(i)}
+  function esc(t){var d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}
+  function fmt(d){if(!d)return'—';var a=d.split('-');return a[2]+'/'+a[1]+'/'+a[0]}
+  function today(){return new Date(Date.now()-3*3600*1000).toISOString().slice(0,10)}
+  function nowParts(){var iso=new Date(Date.now()-3*3600*1000).toISOString();return{d:iso.slice(0,10),h:iso.slice(11,16)}}
+  function tool(c){for(var i=0;i<state.tools.length;i++)if(state.tools[i].cod===c)return state.tools[i];return null}
+  function person(n){for(var i=0;i<state.people.length;i++)if(state.people[i].nome===n)return state.people[i];return null}
+  function posse(c){for(var i=0;i<state.movs.length;i++)if(state.movs[i].cod===c&&!state.movs[i].dd)return state.movs[i];return null}
+  function slug(t){return String(t).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-|-$/g,'')}
+  function days(d){return Math.max(0,Math.floor((Date.parse(today())-Date.parse(d))/86400000))}
+  function estTag(e){var c={'Bom':'ok','Regular':'warn','Danificada':'red','Não localizada':'red','Baixada':'mut'}[e]||'mut';return '<span class="tag '+c+'">'+esc(e)+'</span>'}
+  function nextCod(){var m=0;state.tools.forEach(function(t){var x=/(\d+)$/.exec(t.cod);if(x)m=Math.max(m,parseInt(x[1],10))});var n=String(m+1);while(n.length<3)n='0'+n;return 'FER-'+n}
+
+  function renderMov(){
+    var tot=state.tools.filter(function(t){return t.estado!=='Baixada'}).length;
+    var uso=state.tools.filter(function(t){return posse(t.cod)}).length;
+    var dan=state.tools.filter(function(t){return t.estado==='Danificada'||t.estado==='Não localizada'}).length;
+    $('tally').innerHTML='<div><b>'+tot+'</b>ferramentas ativas</div><div><b>'+uso+'</b>em uso</div><div><b>'+Math.max(0,tot-uso-dan)+'</b>disponíveis</div><div><b>'+dan+'</b>com problema</div>';
+    var op=state.people.map(function(p){return '<option>'+esc(p.nome)+'</option>'}).join('');
+    var cm=$('m-nome').value,ct=$('t-nome').value,cc=$('m-cod').value;
+    $('m-nome').innerHTML=op;$('t-nome').innerHTML=op;
+    if(cm&&person(cm))$('m-nome').value=cm;if(ct&&person(ct))$('t-nome').value=ct;
+    var disp=state.tools.filter(function(t){return !posse(t.cod)&&(t.estado==='Bom'||t.estado==='Regular')});
+    $('m-cod').innerHTML=disp.length?disp.map(function(t){return '<option value="'+esc(t.cod)+'">'+esc(t.cod)+' · '+esc(t.nome)+'</option>'}).join(''):'<option value="">Nenhuma disponível</option>';
+    if(cc&&disp.some(function(t){return t.cod===cc}))$('m-cod').value=cc;
+    var ab=state.movs.filter(function(m){return !m.dd});
+    $('posse').innerHTML=ab.length?ab.map(function(m){var t=tool(m.cod)||{nome:'(removida)'};
+      return '<tr><td>'+esc(m.cod)+'</td><td>'+esc(t.nome)+'</td><td>'+esc(m.nome)+'</td><td>'+fmt(m.d)+'</td><td class="n">'+days(m.d)+'</td>'+
+      '<td><select data-est="'+m.id+'" aria-label="Estado na devolução"><option>Bom</option><option>Regular</option><option>Danificada</option></select></td>'+
+      '<td><button class="btn sm" data-dev="'+m.id+'">Devolver</button></td></tr>'}).join(''):'<tr><td colspan="7" class="empty">Nenhuma ferramenta em posse de colaborador.</td></tr>';
+    var h=state.movs.slice().reverse();
+    $('hist').innerHTML=h.length?h.map(function(m){var t=tool(m.cod)||{nome:'(removida)'};
+      return '<tr><td>'+fmt(m.d)+'</td><td>'+esc(m.cod)+'</td><td>'+esc(t.nome)+'</td><td>'+esc(m.nome)+'</td><td>'+(m.dd?fmt(m.dd)+' · '+esc(m.est):'<span class="tag warn">Em posse</span>')+'</td><td>'+esc(m.obs||'—')+'</td>'+
+      '<td><button class="x" data-mdel="'+m.id+'" aria-label="Remover movimentação">×</button></td></tr>'}).join(''):'<tr><td colspan="7" class="empty">Nenhuma movimentação registrada ainda.</td></tr>';
+  }
+  function renderCad(){
+    $('f-rows').innerHTML=state.tools.length?state.tools.map(function(t,i){
+      function f(k){return '<td><input data-t="'+i+'" data-f="'+k+'" value="'+esc(t[k])+'" aria-label="'+k+' de '+esc(t.cod)+'"></td>'}
+      var eo=['Bom','Regular','Danificada','Não localizada','Baixada'].map(function(e){return '<option'+(t.estado===e?' selected':'')+'>'+e+'</option>'}).join('');
+      return '<tr><td><b>'+esc(t.cod)+'</b>'+(t.ex?' <span class="tag mut">Exemplo</span>':'')+'</td>'+f('nome')+'<td>'+esc(t.cat)+'</td>'+f('marca')+f('serie')+f('local')+'<td><select data-t="'+i+'" data-f="estado" aria-label="Estado de '+esc(t.cod)+'">'+eo+'</select></td><td><button class="x" data-tdel="'+i+'" aria-label="Remover '+esc(t.cod)+'">×</button></td></tr>'}).join(''):'<tr><td colspan="8" class="empty">Nenhuma ferramenta cadastrada.</td></tr>';
+    $('p-rows').innerHTML=state.people.length?state.people.map(function(p,i){
+      function f(k){return '<td><input data-p="'+i+'" data-f="'+k+'" value="'+esc(p[k])+'" aria-label="'+k+' de '+esc(p.nome)+'"></td>'}
+      return '<tr><td><b>'+esc(p.nome)+'</b></td>'+f('func')+f('mat')+'<td><button class="x" data-pdel="'+i+'" aria-label="Remover '+esc(p.nome)+'">×</button></td></tr>'}).join(''):'<tr><td colspan="4" class="empty">Nenhum colaborador cadastrado.</td></tr>';
+    if(!$('f-cod').value)$('f-cod').value=nextCod();
+  }
+  function renderInv(){
+    $('i-rows').innerHTML=state.tools.filter(function(t){return t.estado!=='Baixada'}).map(function(t){
+      var m=posse(t.cod),v=chk[t.cod]||'';
+      return '<tr><td>'+esc(t.cod)+'</td><td>'+esc(t.nome)+'</td><td>'+esc(t.local||'—')+'</td><td>'+(m?esc(m.nome):'—')+'</td><td><select data-chk="'+esc(t.cod)+'" aria-label="Conferência de '+esc(t.cod)+'"><option value="">—</option><option value="ok"'+(v==='ok'?' selected':'')+'>Conferida</option><option value="falta"'+(v==='falta'?' selected':'')+'>Não localizada</option><option value="dano"'+(v==='dano'?' selected':'')+'>Danificada</option></select></td></tr>'}).join('')||'<tr><td colspan="5" class="empty">Cadastre ferramentas para conferir.</td></tr>';
+    var h=state.invs.slice().reverse();
+    $('i-hist').innerHTML=h.length?h.map(function(v){var i=state.invs.indexOf(v);
+      return '<tr><td>'+fmt(v.d)+'</td><td>'+esc(v.resp||'—')+'</td><td class="n">'+v.total+'</td><td class="n">'+v.ok+'</td><td class="n">'+v.falta+'</td><td class="n">'+v.dano+'</td><td><button class="btn sm sec" data-irel="'+i+'">Baixar relatório</button></td></tr>'}).join(''):'<tr><td colspan="7" class="empty">Nenhum inventário registrado ainda.</td></tr>';
+  }
+  function renderAll(){renderMov();renderCad();renderInv();}
+
+  $('m-data').value=today();$('i-data').value=today();
+
+  $('f-ret').addEventListener('submit',function(e){e.preventDefault();
+    var c=$('m-cod').value;if(!c){$('m-msg').textContent='Não há ferramenta disponível para retirar.';return;}
+    if(posse(c)){$('m-msg').textContent='Essa ferramenta já está em posse de '+posse(c).nome+'.';return;}
+    state.movs.push({id:VEX.uid(),d:$('m-data').value,nome:$('m-nome').value,cod:c,obs:$('m-obs').value.trim(),dd:'',est:''});
+    $('m-obs').value='';$('m-msg').textContent='';save();renderAll();});
+  $('posse').addEventListener('click',function(e){var id=e.target.getAttribute('data-dev');if(id===null)return;
+    var m=state.movs.filter(function(x){return x.id===+id})[0];if(!m)return;
+    var sel=document.querySelector('select[data-est="'+id+'"]');var est=sel?sel.value:'Bom';
+    m.dd=today();m.est=est;var t=tool(m.cod);if(t)t.estado=est;save();renderAll();});
+  $('hist').addEventListener('click',function(e){var id=e.target.getAttribute('data-mdel');if(id===null)return;
+    state.movs=state.movs.filter(function(x){return x.id!==+id});save();renderAll();});
+
+  $('f-fer').addEventListener('submit',function(e){e.preventDefault();
+    var c=$('f-cod').value.trim();if(!c)return;
+    if(tool(c)){$('f-msg').textContent='Já existe uma ferramenta com o código '+c+'.';return;}
+    state.tools.push({cod:c,nome:$('f-nome').value.trim(),cat:$('f-cat').value,marca:$('f-marca').value.trim(),serie:$('f-serie').value.trim(),local:$('f-local').value.trim(),estado:'Bom'});
+    $('f-fer').reset();$('f-cod').value='';$('f-msg').textContent='';save();renderAll();});
+  $('f-pes').addEventListener('submit',function(e){e.preventDefault();
+    var n=$('p-nome').value.trim();if(!n)return;
+    if(person(n)){$('p-msg').textContent='Já existe um colaborador com esse nome. Diferencie com o sobrenome.';return;}
+    state.people.push({nome:n,func:$('p-func').value.trim(),mat:$('p-mat').value.trim()});
+    $('f-pes').reset();$('p-msg').textContent='';save();renderAll();});
+  $('f-rows').addEventListener('input',function(e){var i=e.target.getAttribute('data-t');if(i===null||e.target.tagName==='SELECT')return;state.tools[+i][e.target.getAttribute('data-f')]=e.target.value;state.tools[+i].ex=false;save();});
+  $('f-rows').addEventListener('change',function(e){var i=e.target.getAttribute('data-t');if(i===null||e.target.tagName!=='SELECT')return;state.tools[+i].estado=e.target.value;save();renderMov();renderInv();});
+  $('p-rows').addEventListener('input',function(e){var i=e.target.getAttribute('data-p');if(i===null)return;state.people[+i][e.target.getAttribute('data-f')]=e.target.value;save();});
+  $('f-rows').addEventListener('click',function(e){var i=e.target.getAttribute('data-tdel');if(i===null)return;
+    var t=state.tools[+i];
+    if(state.movs.some(function(m){return m.cod===t.cod})){$('f-msg').textContent=t.cod+' tem movimentações registradas. Marque o estado como Baixada em vez de excluir.';return;}
+    state.tools.splice(+i,1);$('f-msg').textContent='';save();renderAll();});
+  $('p-rows').addEventListener('click',function(e){var i=e.target.getAttribute('data-pdel');if(i===null)return;
+    var p=state.people[+i];
+    if(state.movs.some(function(m){return m.nome===p.nome})){$('p-msg').textContent=p.nome+' tem movimentações registradas e não pode ser excluído.';return;}
+    state.people.splice(+i,1);$('p-msg').textContent='';save();renderAll();});
+
+  $('i-rows').addEventListener('change',function(e){var c=e.target.getAttribute('data-chk');if(c===null)return;chk[c]=e.target.value;});
+  $('i-reg').addEventListener('click',function(){
+    var ativos=state.tools.filter(function(t){return t.estado!=='Baixada'});
+    if(!ativos.length){$('i-msg').textContent='Cadastre ferramentas para conferir.';return;}
+    var faltam=ativos.filter(function(t){return !chk[t.cod]}).length;
+    if(faltam){$('i-msg').textContent='Faltam '+faltam+' ferramenta(s) sem conferência. Marque todas antes de registrar.';return;}
+    var itens=ativos.map(function(t){var m=posse(t.cod);return{cod:t.cod,nome:t.nome,local:t.local,com:m?m.nome:'',r:chk[t.cod]}});
+    var v={d:$('i-data').value||today(),resp:$('i-resp').value.trim(),total:itens.length,ok:0,falta:0,dano:0,itens:itens};
+    itens.forEach(function(x){v[x.r]++;var t=tool(x.cod);if(x.r==='falta')t.estado='Não localizada';else if(x.r==='dano')t.estado='Danificada';else if(t.estado==='Não localizada')t.estado='Bom';});
+    state.invs.push(v);chk={};$('i-msg').textContent='';save();renderAll();});
+
+  /* ---- documentos ---- */
+  var LOGO='<svg viewBox="5 30 1135 392" overflow="visible" width="190" role="img" aria-label="VEX Soluções Automotivas"><g fill="#858a8f"><polygon points="51,39 116,40 108,218 38,288"/><polygon points="402.5,117.5 482.5,36.5 827.5,36.5 900,107.5 852.5,156 752.5,62.5 750,107.5 475,107.5 475,254 747.5,254 677.5,326 399,326"/><polygon points="505,151 777.5,151 777.5,214 505,214"/><polygon points="997.5,40 1105,40 832.5,326 722.5,326"/><polygon points="982.5,202.5 932.5,252.5 987.5,329 1112.5,329"/><text x="29" y="411" font-family="Montserrat,Barlow,Arial,sans-serif" font-weight="500" font-size="56" textLength="1089" lengthAdjust="spacing">SOLUÇÕES AUTOMOTIVAS</text></g><g fill="#d8392f"><polygon points="43,326 78,326 363,38 328,38"/><polygon points="134,326 166,326 451,38 419,38"/><polygon points="306.7,93 362.7,107 362.7,113 306.7,99"/><polygon points="217.6,183 273.6,197 273.6,203 217.6,189"/><polygon points="128.5,273 184.5,287 184.5,293 128.5,279"/></g></svg>';
+  var DCSS='@page{size:A4;margin:16mm}*{box-sizing:border-box}body{font-family:Barlow,Arial,sans-serif;color:#26282d;font-size:13px;line-height:1.5;margin:0 auto;padding:24px;max-width:800px;background:#fff}'+
+    '.top{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:4px solid #d8392f;padding-bottom:12px;margin-bottom:18px}h1{font-family:Chakra Petch,Arial Narrow,sans-serif;font-size:19px;margin:0;color:#858a8f;letter-spacing:.02em}'+
+    '.meta{font-size:11px;color:#6b6e75;text-align:right}h2{font-family:Chakra Petch,Arial Narrow,sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#858a8f;margin:20px 0 6px}'+
+    'table{border-collapse:collapse;width:100%}th{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;text-align:left;background:#fff;padding:6px 8px;border:1px solid #d4d5d9}td{padding:6px 8px;border:1px solid #d4d5d9}.n{text-align:right}'+
+    '.id td:first-child{width:28%;background:#e4e4e4;font-weight:600}.termo{border-left:3px solid #d8392f;padding-left:12px;margin:8px 0}.termo ul{margin:6px 0 8px 18px;padding:0}'+
+    '.sign{display:flex;gap:40px;margin-top:64px}.sign div{flex:1;border-top:1px solid #26282d;padding-top:4px;text-align:center;font-size:12px;color:#6b6e75}'+
+    '.bar{margin-bottom:16px}.bar button{font:600 13px Arial,sans-serif;padding:9px 16px;background:#d8392f;color:#fff;border:0;border-radius:3px;cursor:pointer}@media print{.bar{display:none}body{padding:0}}';
+  function wrap(titulo,corpo){var n=nowParts();
+    return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(titulo)+'</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Barlow:wght@400;500;600&family=Montserrat:wght@500&display=swap"><style>'+DCSS+'</style></head><body>'+
+      '<div class="bar"><button onclick="window.print()">Imprimir ou salvar em PDF</button></div>'+
+      '<div class="top">'+LOGO+'<div><h1>'+esc(titulo.toUpperCase())+'</h1><div class="meta">VEX Soluções Automotivas<br>Emitido em '+fmt(n.d)+' às '+n.h+'</div></div></div>'+corpo+'</body></html>';}
+  function termoDoc(nome){
+    var p=person(nome)||{},ab=state.movs.filter(function(m){return m.nome===nome&&!m.dd});
+    var linhas=ab.map(function(m){var t=tool(m.cod)||{};return '<tr><td>'+fmt(m.d)+'</td><td>'+esc(m.cod)+'</td><td>'+esc(t.nome||'')+'</td><td>'+esc([t.marca,t.serie?'S/N '+t.serie:''].filter(Boolean).join(' · ')||'—')+'</td><td>'+esc(t.estado||'')+'</td></tr>'}).join('');
+    return wrap('Termo de responsabilidade de ferramentas',
+      '<h2>Identificação</h2><table class="id"><tr><td>Colaborador</td><td>'+esc(nome)+'</td></tr><tr><td>Função</td><td>'+esc(p.func||'—')+'</td></tr><tr><td>Matrícula</td><td>'+esc(p.mat||'—')+'</td></tr></table>'+
+      '<h2>Ferramentas sob responsabilidade</h2><table><thead><tr><th>Retirada</th><th>Código</th><th>Ferramenta</th><th>Marca / série</th><th>Estado</th></tr></thead><tbody>'+linhas+'</tbody></table>'+
+      '<h2>Termo de responsabilidade</h2><div class="termo"><p>Declaro ter recebido da VEX Soluções Automotivas as ferramentas relacionadas acima, para uso exclusivo nas atividades da empresa, em bom estado de funcionamento. Comprometo-me a:</p><ul><li>utilizar as ferramentas de forma adequada e para a finalidade a que se destinam;</li><li>guardá-las em local seguro ao fim do uso, sem emprestá-las a terceiros nem retirá-las da oficina sem autorização;</li><li>comunicar de imediato perda, furto, quebra ou desgaste;</li><li>devolvê-las quando solicitado ou no término do contrato de trabalho.</li></ul><p>Estou ciente de que perdas ou danos decorrentes de uso indevido ou negligência serão tratados conforme o contrato e a legislação aplicável. Em caso de dano causado por dolo, autorizo a VEX Soluções Automotivas a descontar de minha remuneração o valor correspondente ao prejuízo, nos termos do art. 462, §1º, da CLT.</p></div>'+
+      '<p>Local e data: ______________________________, ____ / ____ / ________</p>'+
+      '<div class="sign"><div>'+esc(nome)+'<br>Colaborador</div><div>Responsável VEX Soluções Automotivas</div></div>');
+  }
+  function invDoc(v){
+    var rot={ok:'Conferida',falta:'Não localizada',dano:'Danificada'};
+    var linhas=v.itens.map(function(x){return '<tr><td>'+esc(x.cod)+'</td><td>'+esc(x.nome)+'</td><td>'+esc(x.local||'—')+'</td><td>'+esc(x.com||'—')+'</td><td>'+rot[x.r]+'</td></tr>'}).join('');
+    return wrap('Relatório de inventário de ferramentas',
+      '<h2>Resumo</h2><table class="id"><tr><td>Data da conferência</td><td>'+fmt(v.d)+'</td></tr><tr><td>Responsável</td><td>'+esc(v.resp||'—')+'</td></tr><tr><td>Total conferido</td><td>'+v.total+'</td></tr><tr><td>Conferidas</td><td>'+v.ok+'</td></tr><tr><td>Não localizadas</td><td>'+v.falta+'</td></tr><tr><td>Danificadas</td><td>'+v.dano+'</td></tr></table>'+
+      '<h2>Itens</h2><table><thead><tr><th>Código</th><th>Ferramenta</th><th>Local</th><th>Com quem está</th><th>Resultado</th></tr></thead><tbody>'+linhas+'</tbody></table>'+
+      '<div class="sign"><div>Responsável pela conferência</div><div>Responsável VEX Soluções Automotivas</div></div>');
+  }
+  function getDl(){return Promise.resolve({save:function(r){return VEX.download(r.filename,r.data,'text/html')}})}
+  function baixar(fn,html,msgEl){
+    msgEl.style.color='';msgEl.textContent='';
+    getDl().then(function(dl){
+      if(!dl){msgEl.textContent='Salvar arquivo não está disponível nesta visualização. Abra a página no claude.ai ou use a versão em arquivo.';return;}
+      return dl.save({filename:fn,data:html}).then(function(){msgEl.style.color='var(--ok)';msgEl.textContent='Documento salvo: '+fn+'. Abra, imprima e arquive.';})
+        .catch(function(er){msgEl.style.color='';msgEl.textContent=(er&&er.code==='declined')?'Salvamento cancelado.':'Não foi possível salvar o documento ('+((er&&er.code)||'erro')+').';});
+    });
+  }
+  $('t-gerar').addEventListener('click',function(){
+    var n=$('t-nome').value;
+    if(!n){$('t-msg').textContent='Escolha um colaborador.';return;}
+    if(!state.movs.some(function(m){return m.nome===n&&!m.dd})){$('t-msg').style.color='';$('t-msg').textContent=n+' não tem ferramentas em posse no momento.';return;}
+    baixar('Termo-Ferramentas-'+slug(n)+'-'+nowParts().d+'.html',termoDoc(n),$('t-msg'));});
+  $('i-hist').addEventListener('click',function(e){var i=e.target.getAttribute('data-irel');if(i===null)return;
+    var v=state.invs[+i];baixar('Inventario-Ferramentas-'+v.d+'.html',invDoc(v),$('i-msg'));});
+
+  document.querySelector('nav').addEventListener('click',function(e){var t=e.target.getAttribute('data-tab');if(!t)return;
+    ['mov','cad','inv'].forEach(function(k){$(k).hidden=k!==t;$('t-'+k).setAttribute('aria-selected',k===t?'true':'false')});
+    if(t==='inv')renderInv();if(t==='cad')renderCad();});
+  VEX.onRemote(renderAll);
+  renderAll();
+})();
+</script>
+</body></html>
