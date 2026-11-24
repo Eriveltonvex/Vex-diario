@@ -1,7 +1,7 @@
 {
- "name": "VEX Diário de Bordo",
- "short_name": "Diário VEX",
- "start_url": "diario.html",
+ "name": "VEX Campo",
+ "short_name": "VEX Campo",
+ "start_url": "index.html",
  "scope": ".",
  "display": "standalone",
  "orientation": "portrait",

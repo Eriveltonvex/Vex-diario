@@ -1,7 +1,7 @@
 // Service worker do app do condutor: guarda o app no celular para abrir sem internet.
 // Os dados ficam no próprio aplicativo (vex.js) e são enviados quando a internet volta.
-var CACHE = 'vex-diario-v2';
-var ARQUIVOS = ['./', 'index.html', 'diario.html', 'vex.js', 'config.js', 'vendor/supabase.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
+var CACHE = 'vex-campo-v6';
+var ARQUIVOS = ['./', 'index.html', 'diario.html', 'abastecimento.html', 'os.html', 'vex.js', 'config.js', 'vendor/supabase.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return Promise.all(ARQUIVOS.map(function (a) { return c.add(a).catch(function () { }); })); }).then(function () { return self.skipWaiting(); }));
 });
@@ -20,7 +20,7 @@ self.addEventListener('fetch', function (e) {
       return res;
     }).catch(function () {
       return caches.match(r, { ignoreSearch: true }).then(function (m) {
-        return m || (r.mode === 'navigate' ? caches.match('diario.html') : null) || new Response('Sem conexão com a internet.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+        return m || (r.mode === 'navigate' ? caches.match('index.html') : null) || new Response('Sem conexão com a internet.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
       });
     })
   );

@@ -1,3 +1,6 @@
-VEX Diário de Bordo - app dos condutores (site separado)
-Mesmo banco de dados (Supabase) do sistema principal. O condutor só enxerga o diário de bordo.
+VEX Campo - app dos condutores e dos mecanicos (site separado)
+Mesmo banco de dados (Supabase) do sistema principal. Um unico icone para todos:
+- Condutor: Diario de bordo e Abastecimento.
+- Mecanico: Ordens de servico (as proprias tarefas, cronometro, pedir tarefa extra). Precisa de internet.
 config.js deve ter os mesmos dados do config.js do sistema principal.
+Ao entrar, cada pessoa e levada para a tela do seu papel.

@@ -2,6 +2,28 @@
    Cada tela mantém seu "state" como antes; este arquivo sincroniza as listas com o banco. */
 (function () {
   'use strict';
+
+  /* Tudo que for digitado em campo de texto vira CAIXA ALTA (e-mail, senha, número e data ficam como estão).
+     Para um campo específico manter o que foi digitado, use o atributo data-nocaps. */
+  (function () {
+    function alvo(el) {
+      if (!el || !el.tagName || (el.hasAttribute && el.hasAttribute('data-nocaps'))) return false;
+      if (el.tagName === 'TEXTAREA') return true;
+      return el.tagName === 'INPUT' && (!el.type || el.type === 'text' || el.type === 'search');
+    }
+    document.addEventListener('input', function (e) {
+      var el = e.target;
+      if (e.isComposing || !alvo(el)) return;
+      var v = el.value, u = v.toUpperCase();
+      if (v === u) return;
+      var a = el.selectionStart, b = el.selectionEnd;
+      el.value = u;
+      try { el.setSelectionRange(a, b); } catch (_) { }
+    }, true);
+    var st = document.createElement('style');
+    st.textContent = 'input:not([type]):not([data-nocaps]),input[type=text]:not([data-nocaps]),input[type=search]:not([data-nocaps]),textarea:not([data-nocaps]){text-transform:uppercase}input::placeholder,textarea::placeholder{text-transform:none}';
+    (document.head || document.documentElement).appendChild(st);
+  })();
   var cfg = window.VEX_CONFIG || {};
   var demo = !(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY && window.supabase);
   var sb = demo ? null : window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
@@ -26,13 +48,13 @@
       signIn: function (email, pw) { return sb.auth.signInWithPassword({ email: email, password: pw }); },
       signOut: function () { return sb.auth.signOut(); },
       setPassword: function (pw) { return sb.auth.updateUser({ password: pw }); },
-      profile: function (uid) { return sb.from('profiles').select('id,email,nome,papel,ativo').eq('id', uid).maybeSingle().then(function (r) { if (r.error) throw r.error; return r.data; }); },
-      profiles: function () { return sb.from('profiles').select('id,email,nome,papel,ativo').order('nome', { ascending: true }).then(function (r) { if (r.error) throw r.error; return r.data; }); },
+      profile: function (uid) { return sb.from('profiles').select('id,email,nome,papel,ativo,modulos').eq('id', uid).maybeSingle().then(function (r) { if (r.error) throw r.error; return r.data; }); },
+      profiles: function () { return sb.from('profiles').select('id,email,nome,papel,ativo,modulos').order('nome', { ascending: true }).then(function (r) { if (r.error) throw r.error; return r.data; }); },
       setProfile: function (id, patch) { return sb.from('profiles').update(patch).eq('id', id).then(function (r) { if (r.error) throw r.error; }); },
       list: function (modulo) {
         var out = [], step = 1000;
         function page(from) {
-          return sb.from('registros').select('id,colecao,ordem,dados').eq('modulo', modulo).order('ordem', { ascending: true }).order('id', { ascending: true }).range(from, from + step - 1)
+          return sb.from('registros').select('id,modulo,colecao,ordem,dados').eq('modulo', modulo).order('ordem', { ascending: true }).order('id', { ascending: true }).range(from, from + step - 1)
             .then(function (r) { if (r.error) throw r.error; out = out.concat(r.data); return r.data.length < step ? out : page(from + step); });
         }
         return page(0);
@@ -69,8 +91,17 @@
     };
   }
 
+  /* Cadastro central: uma coleção do módulo pode apontar para o cadastro central (módulo 'cad').
+     spec.link = { nomeLocal: { m: 'cad', c: 'pessoas', where: function (dados) { return true; } } } */
+  (function () {
+    var raw = B.list;
+    B.list = function (m) {
+      if (links && m === modulo && m !== 'cad') return raw(m).then(function (r) { return raw('cad').then(function (c) { return r.concat(c); }); });
+      return raw(m);
+    };
+  })();
   /* ================= estado e sincronização ================= */
-  var modulo = null, colls = {}, state = null, snap = {}, remoteCbs = [];
+  var modulo = null, colls = {}, links = null, state = null, snap = {}, remoteCbs = [];
   var ME = { user: null, perfil: null };
   var ordLast = 0, uidLast = 0, dirtyTimer = null, pending = 0, writeVer = 0, resyncAgain = false, resyncTimer = null, queue = Promise.resolve();
 
@@ -256,7 +287,7 @@
         if (!o._id) {
           def(o, '_id', uuid()); def(o, '_o', nextOrd());
           snap[o._id] = { c: c, js: js };
-          ins.push({ id: o._id, modulo: modulo, colecao: c, ordem: o._o, dados: JSON.parse(JSON.stringify(o)) });
+          ins.push({ id: o._id, modulo: (links && links[c]) ? links[c].m : modulo, colecao: (links && links[c]) ? links[c].c : c, ordem: o._o, dados: JSON.parse(JSON.stringify(o)) });
         } else {
           seen[o._id] = 1;
           if (!snap[o._id] || snap[o._id].js !== js) {
@@ -305,19 +336,26 @@
   }
   function save() { writeVer++; clearTimeout(dirtyTimer); dirtyTimer = setTimeout(flush, 250); setStatus('pend'); }
 
+  function routeOf(r) {
+    var m = r.modulo || modulo;
+    if (m === modulo && colls[r.colecao] && !(links && links[r.colecao])) return { name: r.colecao };
+    if (links) for (var n in links) { var L = links[n]; if (L.m === m && L.c === r.colecao) return { name: n, where: L.where }; }
+    return null;
+  }
   function applyRows(rows) {
     var server = {}, changed = false;
     rows.forEach(function (r) {
-      if (!colls[r.colecao]) return;
+      var rt = routeOf(r);
+      if (!rt || (rt.where && !rt.where(r.dados || {}))) return;
       server[r.id] = r;
       var js = canon(r.dados), cur = snap[r.id];
       if (cur && cur.js === js) return;
       changed = true;
-      var arr = state[r.colecao], o = null, i;
+      var arr = state[rt.name], o = null, i;
       for (i = 0; i < arr.length; i++) if (arr[i]._id === r.id) { o = arr[i]; break; }
       if (o) { Object.keys(o).forEach(function (k) { delete o[k]; }); Object.assign(o, r.dados); def(o, '_o', Number(r.ordem)); }
       else { arr.push(mk(r)); }
-      snap[r.id] = { c: r.colecao, js: js };
+      snap[r.id] = { c: rt.name, js: js };
     });
     Object.keys(snap).forEach(function (id) {
       if (server[id]) return;
@@ -349,15 +387,15 @@
     '#vex-toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);max-width:92vw;background:#26282d;color:#fff;padding:10px 16px;border-radius:4px;font:500 14px Barlow,system-ui,sans-serif;z-index:90;display:none}#vex-toast.err{background:#b3261e}' +
     '#vexload{position:fixed;inset:0;background:#fff;z-index:80;display:flex;align-items:center;justify-content:center;font:600 16px "Chakra Petch",sans-serif;color:#858a8f}' +
     'body.op #t-cad,body.op #cad{display:none!important}';
-  var PAGES = [['index.html', 'Início'], ['uniformes-epi.html', 'Uniformes e EPI'], ['ferramentas.html', 'Ferramentas'], ['abastecimento.html', 'Abastecimento'], ['ponto.html', 'Ponto e absenteísmo'], ['diario.html', 'Diário de bordo']];
+  var PAGES = [['index.html', 'Início'], ['uniformes-epi.html', 'Uniformes e EPI'], ['ferramentas.html', 'Ferramentas'], ['abastecimento.html', 'Abastecimento'], ['ponto.html', 'Ponto e absenteísmo'], ['diario.html', 'Diário de bordo'], ['os.html', 'Ordens de serviço'], ['compras.html', 'Compras'], ['cad.html', 'Cadastro central']];
   function here() { var p = location.pathname.split('/').pop(); return p || 'index.html'; }
   function paintBar(withLinks) {
     if (!document.getElementById('vexcss')) { var s = document.createElement('style'); s.id = 'vexcss'; s.textContent = CSS; document.head.appendChild(s); }
     if (document.getElementById('vexbar')) return;
     var d = document.createElement('div'); d.id = 'vexbar';
-    var solo = !!window.VEX_SOLO; var links = solo ? '<a href="index.html?senha=1">Trocar senha</a>' : withLinks ? PAGES.map(function (p) { return '<a href="' + p[0] + '"' + (p[0] === here() ? ' class="on"' : '') + '>' + p[1] + '</a>'; }).join('') : '';
+    var mecO = ME.perfil && ME.perfil.papel === 'mecanico'; var solo = !!window.VEX_SOLO; var links = mecO ? '<a href="os.html" class="on">Ordens de serviço</a><a href="index.html?senha=1">Trocar senha</a>' : solo ? '<a href="diario.html">Diário de bordo</a><a href="abastecimento.html">Abastecimento</a><a href="index.html?senha=1">Trocar senha</a>' : withLinks ? PAGES.filter(function (p) { var k = { 'uniformes-epi.html': 'epi', 'ferramentas.html': 'ferr', 'abastecimento.html': 'comb', 'ponto.html': 'ponto', 'diario.html': 'diario', 'os.html': 'os', 'compras.html': 'compras' }[p[0]], pf = ME.perfil; if (p[0] === 'cad.html') return !pf || pf.papel === 'admin'; return !k || !pf || pf.papel !== 'operador' || !Array.isArray(pf.modulos) || pf.modulos.indexOf(k) >= 0; }).map(function (p) { return '<a href="' + p[0] + '"' + (p[0] === here() ? ' class="on"' : '') + '>' + p[1] + '</a>'; }).join('') : '';
     d.innerHTML = '<div class="vb-in"><span class="vb-brand">' + (solo ? 'VEX · Diário de bordo' : 'VEX · Controles') + '</span>' + links + '<span class="vb-sp"></span><span id="vb-st" class="vb-st"></span>' +
-      (ME.user ? '<span>' + esc(ME.perfil && ME.perfil.nome ? ME.perfil.nome : ME.user.email) + ' · ' + (ME.perfil && ME.perfil.papel === 'admin' ? 'administrador' : ME.perfil && ME.perfil.papel === 'condutor' ? 'condutor' : 'operador') + '</span><button id="vb-out" type="button">Sair</button>' : '') + '</div>';
+      (ME.user ? '<span>' + esc(ME.perfil && ME.perfil.nome ? ME.perfil.nome : ME.user.email) + ' · ' + (ME.perfil && ME.perfil.papel === 'admin' ? 'administrador' : ME.perfil && ME.perfil.papel === 'condutor' ? 'condutor' : ME.perfil.papel === 'mecanico' ? 'mecânico' : 'operador') + '</span><button id="vb-out" type="button">Sair</button>' : '') + '</div>';
     document.body.insertBefore(d, document.body.firstChild);
     if (demo) { var b = document.createElement('div'); b.id = 'vexdemo'; b.textContent = 'Modo demonstração: os dados ficam só neste navegador. Para usar com a equipe, preencha o config.js com os dados do Supabase (veja o README).'; d.after(b); }
     var o = document.getElementById('vb-out'); if (o) o.addEventListener('click', function () { B.signOut().then(function () { location.href = 'index.html'; }); });
@@ -400,19 +438,22 @@
 
   /* ================= boot de cada tela ================= */
   function boot(mod, spec) {
-    modulo = mod; colls = spec.colls;
+    modulo = mod; colls = spec.colls; links = spec.link || null;
     if (!document.getElementById('vexcss')) { var s0 = document.createElement('style'); s0.id = 'vexcss'; s0.textContent = CSS; document.head.appendChild(s0); }
     loading(true);
     return who().then(function (p) {
       if (!ME.user) return goLogin();
       if (!p || !p.ativo) { loading(false); document.body.innerHTML = '<div style="padding:40px;font:16px Barlow,sans-serif;max-width:560px;margin:auto">Seu usuário ainda não tem acesso aos controles. Peça ao administrador para liberar e depois <a href="index.html">volte ao início</a>.</div>'; return new Promise(function () { }); }
       if (p.papel !== 'admin') document.body.classList.add('op');
-      if (p.papel === 'condutor' && mod !== 'diario') { loading(false); document.body.innerHTML = '<div style="padding:40px;font:16px Barlow,sans-serif;max-width:560px;margin:auto">Seu usuário tem acesso apenas ao Diário de bordo.</div>'; return new Promise(function () { }); }
+      if (p.papel === 'condutor' && mod !== 'diario' && !(mod === 'comb' && window.VEX_SOLO)) { loading(false); document.body.innerHTML = '<div style="padding:40px;font:16px Barlow,sans-serif;max-width:560px;margin:auto">Seu usuário tem acesso apenas ao Diário de bordo e ao registro de abastecimento (no app do condutor).</div>'; return new Promise(function () { }); }
+      if (p.papel === 'operador' && Array.isArray(p.modulos) && p.modulos.indexOf(mod) < 0) { loading(false); document.body.innerHTML = '<div style="padding:40px;font:16px Barlow,sans-serif;max-width:560px;margin:auto">Seu usuário não tem acesso a este módulo. Peça ao administrador para liberar. <a href="index.html">Voltar ao início</a>.</div>'; return new Promise(function () { }); }
+      if (mod === 'cad' && p.papel !== 'admin') { loading(false); document.body.innerHTML = '<div style="padding:40px;font:16px Barlow,sans-serif;max-width:560px;margin:auto">O Cadastro central é só para administradores. <a href="index.html">Voltar ao início</a>.</div>'; return new Promise(function () { }); }
+      if (p.papel === 'mecanico' && mod !== 'os') { loading(false); document.body.innerHTML = '<div style="padding:40px;font:16px Barlow,sans-serif;max-width:560px;margin:auto">Seu usuário tem acesso apenas às ordens de serviço. <a href="os.html">Abrir minhas tarefas</a>.</div>'; return new Promise(function () { }); }
       paintBar(true);
       return LIST(mod);
     }).then(function (rows) {
-      var hasInit = rows.some(function (r) { return r.colecao === '_init'; }), admin = ME.perfil.papel === 'admin';
-      var initId = { epi: '00000000-0000-4000-8000-0000000000e1', ferr: '00000000-0000-4000-8000-0000000000e2', comb: '00000000-0000-4000-8000-0000000000e3', ponto: '00000000-0000-4000-8000-0000000000e4', diario: '00000000-0000-4000-8000-0000000000e5' }[mod];
+      var hasInit = rows.some(function (r) { return r.colecao === '_init' && (r.modulo || mod) === mod; }), admin = ME.perfil.papel === 'admin';
+      var initId = { epi: '00000000-0000-4000-8000-0000000000e1', ferr: '00000000-0000-4000-8000-0000000000e2', comb: '00000000-0000-4000-8000-0000000000e3', ponto: '00000000-0000-4000-8000-0000000000e4', diario: '00000000-0000-4000-8000-0000000000e5', os: '00000000-0000-4000-8000-0000000000e6', compras: '00000000-0000-4000-8000-0000000000e7', cad: '00000000-0000-4000-8000-0000000000e8' }[mod];
       function fromRows(rs) {
         state = {}; snap = {};
         Object.keys(colls).forEach(function (c) { state[c] = []; });
@@ -422,8 +463,9 @@
       if (!hasInit && admin && spec.seed) {
         return B.insert([{ id: initId, modulo: mod, colecao: '_init', ordem: 0, dados: { v: 1 } }]).then(function () {
           state = spec.seed; snap = {};
+          if (links) Object.keys(links).forEach(function (n) { state[n] = []; });
           Object.keys(colls).forEach(function (c) { if (!state[c]) state[c] = []; });
-          return flush().then(function () { return state; });
+          return flush().then(function () { applyRows(rows); return state; });
         }, function (e) {
           if (e && e.code === '23505') return B.list(mod).then(fromRows);
           throw e;
@@ -457,6 +499,17 @@
     demo: demo, B: B, ME: ME, boot: boot, save: save, flush: flush, uid: uid, toast: toast, who: who, paintBar: paintBar,
     onRemote: function (f) { remoteCbs.push(f); },
     foto: FOTO,
+    /* esconde o cadastro próprio do módulo (agora vem do Cadastro central) e avisa onde cadastrar */
+    central: function (panelIds, formIds) {
+      var first = null;
+      (panelIds || []).forEach(function (i) { var e = document.getElementById(i), p = e && e.closest('.panel'); if (p) { p.style.display = 'none'; if (!first) first = p; } });
+      (formIds || []).forEach(function (i) { var e = document.getElementById(i); if (e) { e.style.display = 'none'; if (!first) first = e; } });
+      if (first) {
+        var n = document.createElement('div'); n.className = 'panel';
+        n.innerHTML = '<p class="hint" style="margin:0"><b>Pessoas e veículos agora são cadastrados uma única vez, no Cadastro central.</b> ' + (ME.perfil && ME.perfil.papel === 'admin' ? '<a href="cad.html">Abrir o Cadastro central</a>' : '') + '</p>';
+        first.parentNode.insertBefore(n, first);
+      }
+    },
     next: function (chave, base) { return B.next(chave, base); },
     download: function (filename, data, type) {
       var b = new Blob([data], { type: type || 'text/html' }), a = document.createElement('a');

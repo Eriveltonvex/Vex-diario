@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Abastecimento · VEX</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#d8392f"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=Montserrat:wght@500&display=swap">
+<style>
+/* Layout: cabeçalho branco com a marca em cinza gelo, abas por tarefa (Abastecimentos, Resumo, Cadastro), tabelas de trabalho no centro. */
+:root{
+  --navy:#858a8f; --strong:#858a8f; --red:#d8392f; --paper:#fbfbfc; --ink:#26282d; --line:#e3e4e7;
+  --surface:#ffffff; --muted:#6b6e75; --ok:#1f7a4d; --warn:#b26a00; --soft:#f1f2f4;
+  --band:#ffffff; --logo:#858a8f;
+  --f-display:'Chakra Petch','Arial Narrow',sans-serif; --f-body:'Barlow',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.band{background:var(--band);color:var(--strong);padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band-in{max-width:1100px;margin:0 auto;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.logo{overflow:visible;width:230px;max-width:60vw;height:auto;display:block}
+.band h1{font:600 22px/1.15 var(--f-display);margin:0;letter-spacing:.02em;text-wrap:balance}
+.band p{margin:4px 0 0;color:#858a8f;font-size:13px}
+.stripe{height:5px;background:var(--red)}
+main{max-width:1100px;margin:0 auto;padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+nav button{font:600 14px var(--f-display);letter-spacing:.03em;padding:9px 16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;border-radius:3px}
+nav button[aria-selected="true"]{background:var(--surface);color:var(--strong);border-color:var(--navy);box-shadow:inset 0 -3px 0 var(--red)}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+h2{font:600 18px var(--f-display);margin:0 0 12px;letter-spacing:.02em}
+.panel{background:var(--surface);border:1px solid var(--line);padding:16px;margin-bottom:18px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;min-width:0}
+input,select{font:400 15px var(--f-body);padding:8px 9px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:3px;min-width:0;width:100%}
+td input,td select{padding:6px 7px;font-size:14px;min-width:90px}
+.btn{font:600 14px var(--f-display);padding:10px 16px;background:var(--red);color:#fff;border:0;border-radius:3px;cursor:pointer;letter-spacing:.03em}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;font-variant-numeric:tabular-nums}
+th{font:600 12px var(--f-display);text-transform:uppercase;letter-spacing:.07em;text-align:left;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--navy);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n,th.n{text-align:right}
+.tag{display:inline-block;font:600 11px var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border:1px solid currentColor;border-radius:2px;white-space:nowrap}
+.tag.ok{color:var(--ok)} .tag.warn{color:var(--warn)} .tag.red{color:var(--red)} .tag.mut{color:var(--muted)}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 8px}
+.hint{color:var(--muted);font-size:13px;margin:8px 0 0}
+.msg{color:var(--warn);font-size:13px;margin:8px 0 0;min-height:1em}
+.tally{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.tally div{background:var(--soft);padding:8px 14px;border-left:3px solid var(--red);font-size:14px}
+.tally b{font-family:var(--f-display);font-size:19px;margin-right:6px}
+.empty{color:var(--muted);padding:14px 4px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+.row label{min-width:220px}
+@media (max-width:520px){.band h1{font-size:19px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:640px){#o-tab{min-width:0!important}#o-tab thead{display:none}#o-tab tr{display:block;border:1px solid var(--line);border-left:3px solid var(--red);margin-bottom:10px;padding:6px 8px}#o-tab td{display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;padding:5px 0;text-align:right}#o-tab td::before{content:attr(data-l);font:600 11px var(--f-display);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left}#o-tab td input{min-width:0;width:140px}}
+.thumb{font:600 12px var(--f-display);background:var(--soft);border:1px solid var(--line);padding:2px 8px;cursor:pointer;color:var(--navy);border-radius:2px}
+.thumb:hover{border-color:var(--red)}
+#fv{position:fixed;inset:0;background:rgba(20,22,26,.88);display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:9999;padding:16px}
+#fv img{max-width:100%;max-height:80vh;background:#fff}
+#fv p{color:#fff;margin:0;font-size:14px;text-align:center}
+#fv button{background:#fff;border:0;padding:8px 18px;font-weight:700;cursor:pointer}
+body{margin:0}</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="vex" viewBox="5 30 1135 392" overflow="visible"><g style="fill:var(--logo)"><polygon points="51,39 116,40 108,218 38,288"/><polygon points="402.5,117.5 482.5,36.5 827.5,36.5 900,107.5 852.5,156 752.5,62.5 750,107.5 475,107.5 475,254 747.5,254 677.5,326 399,326"/><polygon points="505,151 777.5,151 777.5,214 505,214"/><polygon points="997.5,40 1105,40 832.5,326 722.5,326"/><polygon points="982.5,202.5 932.5,252.5 987.5,329 1112.5,329"/><text x="29" y="411" font-family="Montserrat,Barlow,Arial,sans-serif" font-weight="500" font-size="56" textLength="1089" lengthAdjust="spacing">SOLUÇÕES AUTOMOTIVAS</text></g><g fill="#d8392f"><polygon points="43,326 78,326 363,38 328,38"/><polygon points="134,326 166,326 451,38 419,38"/><polygon points="306.7,93 362.7,107 362.7,113 306.7,99"/><polygon points="217.6,183 273.6,197 273.6,203 217.6,189"/><polygon points="128.5,273 184.5,287 184.5,293 128.5,279"/></g></symbol>
+</svg>
+
+<header>
+  <div class="band"><div class="band-in">
+    <svg class="logo" viewBox="5 30 1135 392" overflow="visible" role="img" aria-label="VEX Soluções Automotivas"><use href="#vex"/></svg>
+    <div>
+      <h1>Abastecimento · Registro</h1>
+      <p>VEX Soluções Automotivas · Rev. 00 · Novembro de 2026</p>
+    </div>
+  </div></div>
+  <div class="stripe"></div>
+</header>
+
+<main>
+  <nav role="tablist" aria-label="Seções">
+    <button role="tab" id="t-reg" aria-selected="true" data-tab="reg">Registrar abastecimento</button>
+    <button role="tab" id="t-lis" aria-selected="false" data-tab="lis">Meus abastecimentos</button>
+  </nav>
+
+  <section id="reg">
+    <div class="panel">
+      <h2>Registrar abastecimento</h2>
+      <form class="form" id="f-a">
+        <label for="a-v">Veículo<select id="a-v" required></select></label>
+        <label for="a-c">Condutor<select id="a-c" required></select></label>
+        <label for="a-d">Data<input type="date" id="a-d" required></label>
+        <label for="a-p">Posto<select id="a-p" required></select></label>
+        <label for="a-f">Combustível<select id="a-f" required></select></label>
+        <label for="a-l">Litros<input type="number" id="a-l" min="0.01" step="0.01" inputmode="decimal" required></label>
+        <label for="a-t">Valor total (R$)<input type="number" id="a-t" min="0.01" step="0.01" inputmode="decimal" required></label>
+        <label for="a-pr">Preço por litro (R$), calculado<input type="number" id="a-pr" readonly tabindex="-1"></label>
+        <label for="a-o">Odômetro (km)<input type="number" id="a-o" min="0" step="1" inputmode="numeric" required></label>
+        <label for="a-n">Nº do cupom / nota<input id="a-n" placeholder="Opcional"></label>
+        <label for="a-ob">Observação<input id="a-ob" placeholder="Opcional"></label>
+        <label style="flex-direction:row;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink)"><input type="checkbox" id="a-ch" checked style="width:auto"> Tanque cheio</label>
+        <label for="a-fn" id="a-fnl">Foto da nota ou cupom (obrigatória)<input type="file" id="a-fn" accept="image/*" capture="environment"></label>
+        <label for="a-fo" id="a-fol">Foto do odômetro (obrigatória)<input type="file" id="a-fo" accept="image/*" capture="environment"></label>
+        <button class="btn" type="submit" id="a-btn">Registrar abastecimento</button>
+      </form>
+      <p class="hint">Registre na hora do abastecimento. Tire a foto da nota ou cupom e a foto do painel mostrando o odômetro. Marque “Tanque cheio” quando completar o tanque: o consumo é calculado entre tanques cheios.</p>
+      <p class="msg" id="a-msg" role="status"></p>
+    </div>
+  </section>
+
+  <section id="lis" hidden>
+    <div class="panel">
+      <h2>Meus abastecimentos</h2>
+      <div class="tablewrap"><table style="min-width:820px">
+        <thead><tr><th>Data</th><th>Veículo</th><th>Posto</th><th>Combustível</th><th class="n">Litros</th><th class="n">Total</th><th class="n">Odômetro</th><th>Fotos</th></tr></thead>
+        <tbody id="l-rows"></tbody></table></div>
+      <p class="msg" id="l-msg" role="status"></p>
+    </div>
+  </section>
+</main>
+<div id="fv" role="dialog" aria-label="Foto"><img id="fv-img" alt="Foto"><p id="fv-cap"></p><button type="button" id="fv-x">Fechar</button></div>
+
+<script>window.VEX_SOLO=true;</script>
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="vex.js"></script>
+<script>
+(async function(){
+  var state={veic:[],cond:[],post:[],comb:[],abs:[]};
+  state=await VEX.boot('comb',{colls:{veic:'asc',cond:'asc',post:'asc',comb:'asc',abs:'asc'},link:{veic:{m:'cad',c:'veic'},cond:{m:'cad',c:'pessoas',where:function(d){return (d.papeis||[]).indexOf('condutor')>=0}}}});
+  function save(){VEX.save();}
+  var busy=false;
+  var perfil=(VEX.ME&&VEX.ME.perfil)||{},isCond=perfil.papel==='condutor',isAdm=perfil.papel==='admin';
+  function $(i){return document.getElementById(i)}
+  function esc(t){var d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}
+  function fmt(d){if(!d)return'—';var a=d.split('-');return a[2]+'/'+a[1]+'/'+a[0]}
+  function nowParts(){var iso=new Date(Date.now()-3*3600*1000).toISOString();return{d:iso.slice(0,10),h:iso.slice(11,16)}}
+  function nf(n,d){return (+n).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
+  function brl(n){return 'R$ '+nf(n,2)}
+  function by(a,k,v){for(var i=0;i<a.length;i++)if(a[i][k]===v)return a[i];return null}
+  function vlabel(pl){var v=by(state.veic,'placa',pl);return pl+(v&&v.desc?' · '+v.desc:'')}
+  function meuCond(){if(!isCond)return null;var n=(perfil.nome||'').trim().toLowerCase();for(var i=0;i<state.cond.length;i++)if((state.cond[i].uid&&state.cond[i].uid===perfil.id)||state.cond[i].nome.trim().toLowerCase()===n)return state.cond[i];return null}
+  function opts(arr,k,lab){return '<option value="">Selecione</option>'+arr.map(function(x){return '<option value="'+esc(x[k])+'">'+esc(lab?lab(x[k]):x[k])+'</option>'}).join('')}
+
+  /* fotos */
+  function compress(file){
+    return (window.createImageBitmap?createImageBitmap(file):Promise.reject()).catch(function(){return new Promise(function(ok,fail){var im=new Image();im.onload=function(){ok(im)};im.onerror=function(){fail(new Error('arquivo de imagem inválido'))};im.src=URL.createObjectURL(file)})}).then(function(bmp){
+      var w=bmp.width,h=bmp.height,sc=Math.min(1,1280/Math.max(w,h)),c=document.createElement('canvas');c.width=Math.round(w*sc);c.height=Math.round(h*sc);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+      return new Promise(function(ok,fail){c.toBlob(function(b){b?ok(b):fail(new Error('foto inválida'))},'image/jpeg',0.68)})});
+  }
+  function guardaFoto(file,kind){return compress(file).then(function(bl){var u=VEX.ME.user?VEX.ME.user.id:'demo',path=u+'/'+nowParts().d.slice(0,7)+'/'+VEX.uid()+'-'+kind+'.jpg';return VEX.foto.put(path,bl).then(function(){return path})})}
+  function fotoBtns(a){var cap=a.placa+' · '+fmt(a.d),h='';
+    if(a.fotoN)h+='<button type="button" class="thumb" data-foto="'+esc(a.fotoN)+'" data-cap="'+esc(cap+' · nota/cupom')+'">📷 Nota</button>';
+    if(a.fotoO)h+='<button type="button" class="thumb" data-foto="'+esc(a.fotoO)+'" data-cap="'+esc(cap+' · odômetro')+'">📷 Odômetro</button>';
+    return h||(a.fotoEm?'<span class="tag mut">foto apagada</span>':'—')}
+  function verFoto(path,cap){$('fv-img').removeAttribute('src');$('fv-cap').textContent='Carregando foto…';$('fv').style.display='flex';
+    VEX.foto.url(path).then(function(u){$('fv-img').src=u;$('fv-cap').textContent=cap},function(){$('fv-cap').textContent='Foto indisponível sem conexão. Tente de novo com internet.'})}
+  $('fv-x').addEventListener('click',function(){$('fv').style.display='none'});
+  $('fv').addEventListener('click',function(e){if(e.target===$('fv'))$('fv').style.display='none'});
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-foto]');if(b)verFoto(b.getAttribute('data-foto'),b.getAttribute('data-cap'))});
+  function labelOk(id,input,txt){$(input).addEventListener('change',function(){$(id).firstChild.textContent=this.files[0]?'✔ '+txt+' pronta':txt+' (obrigatória)'})}
+  labelOk('a-fnl','a-fn','Foto da nota ou cupom');labelOk('a-fol','a-fo','Foto do odômetro');
+  function resetLabels(){$('a-fnl').firstChild.textContent='Foto da nota ou cupom (obrigatória)';$('a-fol').firstChild.textContent='Foto do odômetro (obrigatória)'}
+
+  function renderSel(){
+    var v=$('a-v').value,c=$('a-c').value,p=$('a-p').value,f=$('a-f').value;
+    $('a-v').innerHTML=opts(state.veic,'placa',vlabel);$('a-c').innerHTML=opts(state.cond,'nome');$('a-p').innerHTML=opts(state.post,'nome');$('a-f').innerHTML='<option value="">Selecione o combustível…</option>'+opts(state.comb,'nome');
+    $('a-v').value=v;$('a-c').value=c;$('a-p').value=p;$('a-f').value=f;
+    var mc=meuCond();if(mc){$('a-c').value=mc.nome;$('a-c').disabled=true}
+  }
+  function renderLista(){
+    var l=state.abs.slice().sort(function(a,b){return a.d<b.d?1:a.d>b.d?-1:(b.id-a.id)}).slice(0,60);
+    $('l-rows').innerHTML=l.length?l.map(function(a){return '<tr><td>'+fmt(a.d)+'</td><td>'+esc(vlabel(a.placa))+'</td><td>'+esc(a.posto)+'</td><td>'+esc(a.comb)+(a.cheio?'':' <span class="tag mut">parcial</span>')+'</td><td class="n">'+nf(a.l,2)+'</td><td class="n">'+brl(a.tot)+'</td><td class="n">'+nf(a.odo,0)+'</td><td>'+fotoBtns(a)+'</td></tr>'}).join('')
+      :'<tr><td colspan="8" class="empty">Nenhum abastecimento registrado.</td></tr>';
+  }
+  function renderAll(){renderSel();renderLista()}
+  $('a-f').addEventListener('change',function(){var g=/gnv/i.test(this.value);$('a-l').parentNode.firstChild.textContent=g?'Metros cúbicos (m³)':'Litros'});
+  function preco(){var l=parseFloat($('a-l').value),t=parseFloat($('a-t').value);$('a-pr').value=l>0&&t>0?(t/l).toFixed(3):''}
+  $('a-l').addEventListener('input',preco);$('a-t').addEventListener('input',preco);
+
+  $('f-a').addEventListener('submit',async function(e){e.preventDefault();if(busy)return;var m=$('a-msg');m.style.color='';
+    if(!state.veic.length||!state.cond.length||!state.post.length||!state.comb.length){m.textContent='Os cadastros de veículo, condutor, posto e combustível ainda não foram feitos pela gestão.';return}
+    var l=parseFloat($('a-l').value),t=parseFloat($('a-t').value),o=parseFloat($('a-o').value);
+    if(!(l>0)||!(t>0)||isNaN(o)){m.textContent='Confira litros, valor total e odômetro.';return}
+    var fn=$('a-fn').files[0],fo=$('a-fo').files[0];
+    if(!isAdm&&(!fn||!fo)){m.textContent='Tire as duas fotos: da nota ou cupom e do odômetro. Elas são obrigatórias.';return}
+    var pl=$('a-v').value,mine=state.abs.filter(function(x){return x.placa===pl});
+    var avisos=[];if(mine.length){var mx=Math.max.apply(null,mine.map(function(x){return x.odo}));if(o<mx)avisos.push('o odômetro informado é menor que o último que você registrou para este veículo ('+nf(mx,0)+' km)')}
+    var vv=by(state.veic,'placa',pl),ex=vv&&vv.ex&&vv.ex[$('a-f').value],cap=(ex&&ex.tq>0)?ex.tq:(vv&&vv.tanque);if(cap&&l>cap)avisos.push('a quantidade passa da capacidade do tanque ('+cap+')');
+    if(avisos.length&&!confirm('Atenção: '+avisos.join(' e ')+'. Deseja registrar mesmo assim?'))return;
+    busy=true;$('a-btn').disabled=true;m.textContent='Guardando as fotos…';var pn='',po='';
+    try{if(fn)pn=await guardaFoto(fn,'n');if(fo)po=await guardaFoto(fo,'o')}
+    catch(er){busy=false;$('a-btn').disabled=false;m.textContent='Não foi possível guardar as fotos: '+(er&&er.message||er)+'. Tente de novo.';return}
+    var np=nowParts();
+    state.abs.push({id:VEX.uid(),d:$('a-d').value,hs:np.h,placa:pl,cond:$('a-c').value,posto:$('a-p').value,comb:$('a-f').value,l:l,p:Math.round(t/l*1000)/1000,tot:t,odo:o,cheio:$('a-ch').checked,doc:$('a-n').value.trim(),obs:$('a-ob').value.trim(),fotoN:pn,fotoO:po,via:'app'});
+    save();['a-l','a-t','a-pr','a-o','a-n','a-ob'].forEach(function(i){$(i).value=''});$('a-fn').value='';$('a-fo').value='';resetLabels();$('a-ch').checked=true;
+    busy=false;$('a-btn').disabled=false;renderAll();m.style.color='var(--ok)';m.textContent='Abastecimento registrado.';});
+
+  $('a-d').value=nowParts().d;
+  document.querySelector('nav').addEventListener('click',function(e){var t=e.target.getAttribute('data-tab');if(!t)return;
+    ['reg','lis'].forEach(function(k){$(k).hidden=k!==t;$('t-'+k).setAttribute('aria-selected',k===t?'true':'false')});
+    if(t==='reg')$('a-d').value=nowParts().d;});
+  VEX.onRemote(renderAll);
+  renderAll();
+})();
+</script>
+<script>if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});</script>
+</body></html>

@@ -187,11 +187,12 @@ body{margin:0}</style></head><body>
 <script>
 (async function(){
   var state={veic:[],cond:[],trips:[]};
-  state=await VEX.boot('diario',{colls:{veic:'asc',cond:'asc',trips:'asc'},seed:state});
+  state=await VEX.boot('diario',{colls:{veic:'asc',cond:'asc',trips:'asc'},link:{veic:{m:'cad',c:'veic'},cond:{m:'cad',c:'pessoas',where:function(d){return (d.papeis||[]).indexOf('condutor')>=0}}},seed:state});
+  VEX.central(['f-v','f-c']);
   function save(){VEX.save();}
   var busy=false;
   var perfil=(VEX.ME&&VEX.ME.perfil)||{},isCond=perfil.papel==='condutor',isAdm=perfil.papel==='admin';
-  function meuCond(){if(!isCond)return null;var n=(perfil.nome||'').trim().toLowerCase();for(var i=0;i<state.cond.length;i++)if(state.cond[i].nome.trim().toLowerCase()===n)return state.cond[i];return null}
+  function meuCond(){if(!isCond)return null;var n=(perfil.nome||'').trim().toLowerCase();for(var i=0;i<state.cond.length;i++)if((state.cond[i].uid&&state.cond[i].uid===perfil.id)||state.cond[i].nome.trim().toLowerCase()===n)return state.cond[i];return null}
   function meu(t){var m=meuCond();return !m||t.cond===m.nome}
   function $(i){return document.getElementById(i)}
   function esc(t){var d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VEX · Diário de Bordo</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#d8392f"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<title>VEX · Campo</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#d8392f"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=Montserrat:wght@500&display=swap">
 <style>
@@ -117,11 +117,12 @@ body{margin:0}
     $('f-login').addEventListener('submit',function(e){e.preventDefault();$('l-msg').textContent='Entrando…';
       VEX.B.signIn($('l-mail').value.trim(),$('l-pw').value).then(function(r){
         if(r.error){$('l-msg').textContent=/invalid/i.test(r.error.message)?'E-mail ou senha incorretos.':'Não foi possível entrar: '+r.error.message;return;}
-        location.href='diario.html';});});
+        location.href='index.html';});});
     return;
   }
   if(!p||!p.ativo){show('v-semacesso');$('b-sair').addEventListener('click',function(){VEX.B.signOut().then(function(){location.reload()})});return;}
-  if(new URLSearchParams(location.search).get('senha')!=='1'){location.replace('diario.html');return;}
+  if(new URLSearchParams(location.search).get('senha')!=='1'){location.replace(p.papel==='mecanico'?'os.html':'diario.html');return;}
+  if(p.papel==='mecanico'){var vl=document.querySelector('#v-senha a[href="diario.html"]');if(vl){vl.href='os.html';vl.textContent='Voltar às ordens de serviço'}}
   show('v-senha');
   $('f-pw').addEventListener('submit',function(e){e.preventDefault();var m=$('pw-msg');m.style.color='';
     if($('pw1').value!==$('pw2').value){m.textContent='As senhas não conferem.';return;}
